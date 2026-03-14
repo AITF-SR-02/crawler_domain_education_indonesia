@@ -124,8 +124,12 @@ TARGET_KEYWORDS: list[str] = [
     "Kementerian Pendidikan",
     "Kemdikbud",
     "Kemendikbudristek",
-    "Kemendikdasmen",
+    "Kemdikdasmen",
+    "Kemdiktisaintek",
     "Kemensos Sekolah Rakyat",
+    "Badan Standar Kurikulum dan Asesmen Pendidikan",
+    "BSKAP",
+    "Pusat Kurikulum dan Pembelajaran",
     # --- Soal QnA & Level ---
     "Soal Mudah SD SMP SMA",
     "Soal Menengah SD SMP SMA",

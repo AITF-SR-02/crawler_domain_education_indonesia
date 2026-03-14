@@ -8,17 +8,21 @@
 
 # --- Portal Pemerintah Pendidikan (.go.id) ---
 https://sekolahrakyat.kemensos.go.id
-https://buku.kemendikdasmen.go.id
-https://guru.kemendikdasmen.go.id
+https://buku.kemdikdasmen.go.id
+https://guru.kemdikdasmen.go.id
 https://rumah.pendidikan.go.id
-https://kurikulum.kemendikdasmen.go.id
-https://cerdasberkarakter.kemendikdasmen.go.id
+https://kurikulum.kemdikdasmen.go.id
+https://cerdasberkarakter.kemdikdasmen.go.id
 https://ayoguruberbagi.kemdikbud.go.id
-https://pusdatin.kemendikdasmen.go.id
-https://ppsdm.kemendikdasmen.go.id
+https://pusdatin.kemdikdasmen.go.id
+https://ppsdm.kemdikdasmen.go.id
 https://pusmendik.kemdikbud.go.id
-https://ppg.kemendikdasmen.go.id
-https://repositori.kemendikdasmen.go.id
+https://ppg.kemdikdasmen.go.id
+https://repositori.kemdikdasmen.go.id
+https://bskap.kemdikdasmen.go.id
+https://www.kemdiktisaintek.go.id
+https://dikti.kemdiktisaintek.go.id
+https://ristekbrin.go.id
 
 https://forum.pelatihan-osn.com/
 
@@ -32,12 +36,45 @@ https://id.wikipedia.org/wiki/sekolahrakyat
 https://id.wikipedia.org/wiki/Pendidikan_di_Indonesia
 https://id.wikipedia.org/wiki/Profil_Pelajar_Pancasila
 
-# --- Berita & Analisis Pendidikan ---
-https://www.detik.com/edu
+# --- Berita & Analisis Pendidikan (Domain News Online) ---
+# Kompas Group
 https://edukasi.kompas.com
-https://tirto.id/pendidikan
-https://kumparan.com/topic/pendidikan
+https://www.kompas.id/pendidikan
+
+# Detik Network
+https://www.detik.com/edu
+https://finance.detik.com/berita-ekonomi-bisnis/pendidikan
+
+# Tempo Group
+https://www.tempo.co/pendidikan
+https://en.tempo.co/education
+
+# CNN & CNBC Indonesia
+https://www.cnnindonesia.com/education
+https://www.cnbcindonesia.com/education
+
+# Koran & Media Cetak Online
 https://koranedukasi.id
+https://www.republika.co.id/pendidikan
+https://pendidikan.suara.com
+https://www.tribunnews.com/topic/pendidikan
+https://www.antaranews.com/topik/pendidikan
+
+# Media Bisnis & Ekonomi (untuk pendidikan vokasi)
+https://www.kontan.co.id/topic/pendidikan
+https://www.bisnis.com/pendidikan
+https://katadata.co.id/pendidikan
+
+# Media Islam & Moderasi (untuk nilai karakter)
+https://www.nu.or.id/pendidikan
+https://www.muhammadiyah.or.id/pendidikan
+https://www.republika.co.id/kajian/pendidikan
+
+# Portal Daerah (Tribun Network - contoh beberapa provinsi)
+https://jogja.tribunnews.com/topic/pendidikan
+https://sumsel.tribunnews.com/topic/pendidikan
+https://jabar.tribunnews.com/topic/pendidikan
+https://jatim.tribunnews.com/topic/pendidikan
 
 # --- Komunitas Guru & Blog Pendidikan ---
 https://gurusiana.id
@@ -59,5 +96,20 @@ https://saling-sapa.blogspot.com
 https://pintar.tanotofoundation.org
 https://inovasi.or.id
 https://pspk.id
+
+# --- Jurnal Ilmiah & Repository Akademik ---
+https://garuda.kemdikbud.go.id
+https://sinta.kemdikbud.go.id
+https://neliti.com
+https://scholar.google.co.id
+https://repository.ui.ac.id
+https://repository.ugm.ac.id
+https://repository.itb.ac.id
+https://repository.uny.ac.id
+https://eprints.uny.ac.id
+https://journal.uny.ac.id
+https://ejournal.ut.ac.id
+https://jurnal.upi.edu
+https://journal.um.ac.id
 
 

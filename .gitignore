@@ -1,24 +1,22 @@
-# Python-generated files
+```
+# Python
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+*.pyc
+*.pyo
+*.pyd
 
-# Virtual environments
+# Dependencies
+venv/
 .venv/
-
-# Environment secrets
 .env
+.env.local
+*.env.*
 
-# Crawl output data (large files)
-data/*.jsonl
-data/*.log
+# Logs and temp files
+*.log
+*.tmp
 
-# UV lock (optional — remove this line if you want reproducible builds)
-# uv.lock
-
-# OS
-Thumbs.db
-.DS_Store
+# Editors
+.vscode/
+.idea/
+```
