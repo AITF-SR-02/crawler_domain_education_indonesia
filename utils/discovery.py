@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # Semua query sengaja dalam bahasa Indonesia agar hasil relevan
 # Menggunakan site: operator untuk diversifikasi sumber
 SEARCH_QUERIES: list[str] = [
-    # ===== SUMBER: PORTAL PEMERINTAH (.go.id) =====
+    # ===== SUMBER: PORTAL PEMERINTAH (.go.id) - UPDATED FOR NEW MINISTRIES =====
     'site:go.id kurikulum merdeka materi pelajaran',
     'site:go.id modul ajar SD SMP SMA',
     'site:go.id capaian pembelajaran kurikulum',
@@ -39,8 +39,11 @@ SEARCH_QUERIES: list[str] = [
     'site:go.id pendidikan dasar menengah',
     'site:go.id buku teks pelajaran',
     'site:go.id peraturan kurikulum pendidikan',
-    'site:go.id kemendikdasmen sekolah rakyat',
-
+    'site:kemdikdasmen.go.id sekolah rakyat kurikulum',
+    'site:kemdiktisaintek.go.id pendidikan tinggi riset',
+    'site:bskap.kemdikdasmen.go.id standar kurikulum asesmen',
+    'site:ristekbrin.go.id penelitian pendidikan',
+    
     # ===== SUMBER: UNIVERSITAS & AKADEMIK (.ac.id) =====
     'site:ac.id kurikulum merdeka penelitian',
     'site:ac.id jurnal pendidikan matematika',
@@ -52,13 +55,13 @@ SEARCH_QUERIES: list[str] = [
     'site:ac.id pendidikan karakter pancasila',
     'site:ac.id evaluasi pembelajaran sekolah',
     'site:ac.id taksonomi Bloom HOTS pendidikan',
-
+    
     # ===== SUMBER: SEKOLAH (.sch.id) =====
     'site:sch.id materi pelajaran kurikulum merdeka',
     'site:sch.id soal ujian pembahasan',
     'site:sch.id modul ajar guru',
     'site:sch.id RPP silabus kurikulum',
-
+    
     # ===== SUMBER: PLATFORM EDUKASI INDONESIA =====
     'site:zenius.net materi pelajaran',
     'site:zenius.net soal pembahasan matematika fisika',
@@ -67,7 +70,24 @@ SEARCH_QUERIES: list[str] = [
     'site:quipper.com materi pelajaran Indonesia',
     'site:kelaspintar.id materi kurikulum merdeka',
     'site:utbk.id soal pembahasan',
-
+    
+    # ===== SUMBER: NEWS ONLINE - PENDIDIKAN =====
+    'site:kompas.com pendidikan kurikulum merdeka sekolah',
+    'site:kompas.id pendidikan kurikulum Indonesia',
+    'site:detik.com pendidikan kurikulum merdeka sekolah',
+    'site:tempo.co pendidikan kurikulum Indonesia',
+    'site:cnnindonesia.com education pendidikan',
+    'site:cnbcindonesia.com education pendidikan',
+    'site:republika.co.id pendidikan kurikulum sekolah',
+    'site:tribunnews.com pendidikan sekolah kurikulum',
+    'site:antaranews.com pendidikan sekolah Indonesia',
+    'site:suara.com pendidikan sekolah kurikulum',
+    'site:kontan.co.id pendidikan sekolah vokasi',
+    'site:bisnis.com pendidikan sekolah Indonesia',
+    'site:katadata.co.id pendidikan riset Indonesia',
+    'site:nu.or.id pendidikan islam kurikulum',
+    'site:muhammadiyah.or.id pendidikan sekolah',
+    
     # ===== KURIKULUM & PENDIDIKAN UMUM (tanpa site:) =====
     '"Kurikulum Merdeka" materi pelajaran Indonesia',
     '"Kurikulum Merdeka" modul ajar SD Indonesia',
@@ -79,7 +99,9 @@ SEARCH_QUERIES: list[str] = [
     '"Sekolah Rakyat" pendidikan Indonesia',
     'rencana pelaksanaan pembelajaran kurikulum merdeka',
     '"modul ajar" guru penggerak kurikulum merdeka',
-
+    '"Kemdikdasmen" kurikulum pendidikan',
+    '"Kemdiktisaintek" pendidikan tinggi',
+    
     # ===== ASESMEN & UJIAN =====
     '"Ujian Nasional" soal pembahasan Indonesia',
     '"Asesmen Nasional" soal AKM Indonesia',
@@ -88,7 +110,7 @@ SEARCH_QUERIES: list[str] = [
     'latihan soal ujian SD SMP SMA Indonesia',
     'soal dan pembahasan ujian nasional Indonesia',
     'soal AKM literasi numerasi pembahasan',
-
+    
     # ===== STEM: MATEMATIKA =====
     'materi matematika SD kurikulum merdeka Indonesia',
     'materi matematika SMP kurikulum merdeka',
@@ -97,24 +119,24 @@ SEARCH_QUERIES: list[str] = [
     'soal matematika SMA pembahasan lengkap',
     'olimpiade matematika Indonesia OSN soal pembahasan',
     'rumus matematika SMA lengkap Indonesia',
-
+    
     # ===== STEM: FISIKA =====
     'materi fisika SMA kurikulum merdeka Indonesia',
     'soal fisika SMA pembahasan lengkap',
     'olimpiade fisika Indonesia soal pembahasan',
     'rumus fisika SMA lengkap',
-
+    
     # ===== STEM: KIMIA =====
     'materi kimia SMA kurikulum merdeka Indonesia',
     'soal kimia SMA pembahasan lengkap',
     'olimpiade kimia Indonesia soal pembahasan',
-
+    
     # ===== STEM: BIOLOGI =====
     'materi biologi SMA kurikulum merdeka Indonesia',
     'materi IPA biologi SMP kurikulum merdeka',
     'soal biologi SMA pembahasan lengkap',
     'olimpiade biologi Indonesia soal pembahasan',
-
+    
     # ===== NON-STEM =====
     'materi ekonomi SMA kurikulum merdeka Indonesia',
     'soal ekonomi SMA pembahasan',
@@ -123,24 +145,24 @@ SEARCH_QUERIES: list[str] = [
     'materi sosiologi SMA kurikulum merdeka Indonesia',
     'materi geografi SMA kurikulum merdeka Indonesia',
     'materi IPS SMP kurikulum merdeka Indonesia',
-
+    
     # ===== PKN / PPKN =====
     'materi PPKN kurikulum merdeka Indonesia',
     'materi pendidikan kewarganegaraan SD SMP SMA',
     'soal PPKN Pancasila pembahasan',
     '"Pendidikan Pancasila" materi kurikulum merdeka',
-
+    
     # ===== BAHASA INDONESIA =====
     'materi bahasa Indonesia SD kurikulum merdeka',
     'materi bahasa Indonesia SMP kurikulum merdeka',
     'materi bahasa Indonesia SMA kurikulum merdeka',
     'soal bahasa Indonesia pembahasan ujian',
-
+    
     # ===== BAHASA INGGRIS =====
     'materi bahasa Inggris SMP kurikulum merdeka',
     'materi bahasa Inggris SMA kurikulum merdeka',
     'soal bahasa Inggris SMP SMA pembahasan',
-
+    
     # ===== SOAL QNA PER LEVEL KESULITAN =====
     'soal pilihan ganda SD kelas 4 5 6 pembahasan Indonesia',
     'soal pilihan ganda SMP kelas 7 8 9 pembahasan Indonesia',
@@ -149,34 +171,33 @@ SEARCH_QUERIES: list[str] = [
     'soal HOTS matematika SMA pembahasan',
     'soal sulit olimpiade matematika fisika Indonesia',
     'contoh soal mudah menengah sulit SMA pembahasan',
-
+    
     # ===== KOGNITIF & PEDAGOGIK =====
     'kemampuan kognitif siswa pendidikan Indonesia',
     'pembelajaran berdiferensiasi kurikulum merdeka',
     'pendidikan karakter nasionalisme siswa Indonesia',
     'projek penguatan profil pelajar Pancasila P5',
-
-    # ===== BERITA PENDIDIKAN =====
-    'site:kompas.com pendidikan kurikulum merdeka',
-    'site:tempo.co pendidikan kurikulum Indonesia',
-    'site:detik.com pendidikan kurikulum merdeka sekolah',
-    'site:republika.co.id pendidikan kurikulum sekolah',
-    'site:jpnn.com pendidikan kurikulum Indonesia',
-
-    # ===== JURNAL PENDIDIKAN =====
+    
+    # ===== JURNAL PENDIDIKAN & RISET =====
     'jurnal pendidikan Indonesia kurikulum merdeka',
     'jurnal penelitian pendidikan matematika Indonesia',
     'jurnal pendidikan sains Indonesia',
     'jurnal asesmen evaluasi pendidikan Indonesia',
+    'garuda.kemdikbud.go.id jurnal pendidikan',
+    'sinta.kemdikbud.go.id pendidikan',
+    'neliti.com pendidikan Indonesia',
 ]
 
 # Domain pendidikan Indonesia yang kita prioritaskan
 PRIORITY_DOMAINS: set[str] = {
-    # Pemerintah pendidikan
+    # Pemerintah pendidikan (updated for new ministries)
     "kemdikbud.go.id",
     "kemdikbudristek.go.id",
     "kemendikbud.go.id",
     "kemendikdasmen.go.id",
+    "kemdiktisaintek.go.id",
+    "bskap.kemdikdasmen.go.id",
+    "ristekbrin.go.id",
     "belajar.id",
     "guru.kemdikbud.go.id",
     "merdekamengajar.kemdikbud.go.id",
@@ -198,9 +219,29 @@ PRIORITY_DOMAINS: set[str] = {
     "pintar.tanotofoundation.org",
     "inovasi.or.id",
     "pspk.id",
-    # Berita pendidikan
+    # Berita pendidikan (news online)
     "edukasi.kompas.com",
-    "tirto.id",
+    "www.kompas.id",
+    "www.detik.com",
+    "www.tempo.co",
+    "www.cnnindonesia.com",
+    "www.cnbcindonesia.com",
+    "www.republika.co.id",
+    "www.tribunnews.com",
+    "www.antaranews.com",
+    "pendidikan.suara.com",
+    "www.kontan.co.id",
+    "www.bisnis.com",
+    "katadata.co.id",
+    "www.nu.or.id",
+    "www.muhammadiyah.or.id",
+    # Jurnal & Repository
+    "garuda.kemdikbud.go.id",
+    "sinta.kemdikbud.go.id",
+    "neliti.com",
+    "repository.ui.ac.id",
+    "repository.ugm.ac.id",
+    "repository.itb.ac.id",
 }
 
 # Domain yang TIDAK boleh di-crawl (search engine, sosmed, e-commerce, berita asing)
