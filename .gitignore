@@ -1,25 +1,50 @@
-```
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 *.pyd
 
-# Dependencies
+# Virtual envs
 .venv/
 venv/
 env/
 
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
+# Editor / IDE
 .vscode/
 .idea/
-```
+*.sublime-workspace
+*.sublime-project
+
+# Environment / secrets
+.env
+.env.local
+.env.* 
+secrets.*
+credentials.json
+*.pem
+*.key
+*.crt
+
+# Data / outputs (do NOT push large datasets)
+data/
+data/raw/
+*.sqlite3
+*.db
+*.jsonl
+
+# Logs and caches
+*.log
+*.tmp
+*.cache
+.pytest_cache/
+.mypy_cache/
+coverage/
+.coverage
+dist/
+build/
+*.egg-info/
+
+# Misc
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
