@@ -123,9 +123,15 @@ async def main(args: argparse.Namespace) -> None:
 
     # Apply blacklist
     if getattr(args, "blacklist", None):
-        from utils.discovery import BLOCKED_DOMAINS
-        for domain in args.blacklist.split(","):
-            BLOCKED_DOMAINS.add(domain.strip().lower())
+        from utils.discovery import BLOCKED_DOMAINS, _BLOCKED_URL_PATTERNS
+        for item in args.blacklist.split(","):
+            val = item.strip().lower()
+            if not val:
+                continue
+            if "/" in val:
+                _BLOCKED_URL_PATTERNS.append(val)
+            else:
+                BLOCKED_DOMAINS.add(val)
 
     # Apply CLI overrides
     if args.restart:

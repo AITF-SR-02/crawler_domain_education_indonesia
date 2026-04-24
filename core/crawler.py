@@ -340,22 +340,29 @@ class CrawlEngine:
                 """
                 UPDATE url_jobs
                 SET priority = CASE
-                    WHEN url LIKE '%detik.com/edu/%' THEN 0
                     WHEN url LIKE '%ruangguru.com/blog/%' THEN 0
-                    WHEN url LIKE '%liputan6.com/read/%' THEN 0
-                    WHEN url LIKE '%republika.co.id/berita/%' THEN 0
                     WHEN url LIKE '%quipper.com/id/blog/%' THEN 0
                     WHEN url LIKE '%zenius.net/blog/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/edu/%' THEN 2
-                    WHEN url LIKE 'https://www.kompas.com/skola/%' THEN 2
-                    WHEN url LIKE 'https://edukasi.kompas.com/%' THEN 2
-                    WHEN domain LIKE '%detik.com' THEN 3
+                    WHEN url LIKE 'https://www.kompas.com/edu/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/skola/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/edu-news/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/perguruan-tinggi/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/sekolah/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/pendidikan-khusus/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/beasiswa/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/literasi/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/stori/%' THEN 0
+                    WHEN url LIKE 'https://edukasi.kompas.com/%' THEN 0
+                    WHEN url LIKE '%detik.com/edu/%' THEN 2
+                    WHEN url LIKE '%liputan6.com/read/%' THEN 2
+                    WHEN url LIKE '%republika.co.id/berita/%' THEN 2
                     WHEN domain LIKE '%ruangguru.com' THEN 3
-                    WHEN domain LIKE '%liputan6.com' THEN 3
-                    WHEN domain LIKE '%republika.co.id' THEN 3
                     WHEN domain LIKE '%quipper.com' THEN 3
                     WHEN domain LIKE '%zenius.net' THEN 3
-                    WHEN domain LIKE '%kompas.com' THEN 5
+                    WHEN domain LIKE '%kompas.com' THEN 3
+                    WHEN domain LIKE '%detik.com' THEN 5
+                    WHEN domain LIKE '%liputan6.com' THEN 5
+                    WHEN domain LIKE '%republika.co.id' THEN 5
                     ELSE 10
                 END
                 """
@@ -393,34 +400,39 @@ class CrawlEngine:
         host = (p.netloc or "").lower()
         path = (p.path or "").lower()
 
-        # Non-Kompas Target paths get highest priority (0)
-        if host.endswith("detik.com") and "/edu/" in path:
-            return 0
+        # Highest Priority (0): Ruangguru, Zenius, Quipper, Kompas EDU
         if host.endswith("ruangguru.com") and "/blog/" in path:
-            return 0
-        if host.endswith("liputan6.com") and "/read/" in path:
-            return 0
-        if host.endswith("republika.co.id") and "/berita/" in path:
             return 0
         if host.endswith("quipper.com") and "/blog/" in path:
             return 0
         if host.endswith("zenius.net") and "/blog/" in path:
             return 0
-
-        # Kompas Target paths get lower priority (2) because of the massive backlog
-        if host == "www.kompas.com" and (path.startswith("/edu/") or path.startswith("/skola/")):
-            return 2
+        
+        kompas_edu_paths = (
+            "/edu/", "/skola/", "/edu-news/", "/perguruan-tinggi/", 
+            "/sekolah/", "/pendidikan-khusus/", "/beasiswa/", 
+            "/literasi/", "/stori/"
+        )
+        if host == "www.kompas.com" and path.startswith(kompas_edu_paths):
+            return 0
         if host == "edukasi.kompas.com":
+            return 0
+
+        # Secondary Target Priority (2): Detik, Liputan6, Republika
+        if host.endswith("detik.com") and "/edu/" in path:
+            return 2
+        if host.endswith("liputan6.com") and "/read/" in path:
+            return 2
+        if host.endswith("republika.co.id") and "/berita/" in path:
             return 2
 
-        # Non-Kompas Generic pages
-        if host.endswith("detik.com") or host.endswith("ruangguru.com") or \
-           host.endswith("liputan6.com") or host.endswith("republika.co.id") or \
-           host.endswith("quipper.com") or host.endswith("zenius.net"):
+        # Generic pages for top domains (3)
+        if host.endswith("ruangguru.com") or host.endswith("quipper.com") or \
+           host.endswith("zenius.net") or host.endswith("kompas.com"):
             return 3
 
-        # Kompas Generic pages
-        if host.endswith("kompas.com"):
+        # Generic pages for secondary domains (5)
+        if host.endswith("detik.com") or host.endswith("liputan6.com") or host.endswith("republika.co.id"):
             return 5
 
         return 10
