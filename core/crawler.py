@@ -341,18 +341,19 @@ class CrawlEngine:
                 UPDATE url_jobs
                 SET priority = CASE
                     WHEN url LIKE '%ruangguru.com/blog/%' THEN 0
+                    WHEN url LIKE '%ruangguru.com/blog/%' THEN 0
                     WHEN url LIKE '%quipper.com/id/blog/%' THEN 0
                     WHEN url LIKE '%zenius.net/blog/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/edu/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/skola/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/edu-news/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/perguruan-tinggi/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/sekolah/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/pendidikan-khusus/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/beasiswa/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/literasi/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/stori/%' THEN 0
-                    WHEN url LIKE 'https://edukasi.kompas.com/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/edu/%' THEN 1
+                    WHEN url LIKE 'https://www.kompas.com/skola/%' THEN 1
+                    WHEN url LIKE 'https://www.kompas.com/edu-news/%' THEN 1
+                    WHEN url LIKE 'https://www.kompas.com/perguruan-tinggi/%' THEN 1
+                    WHEN url LIKE 'https://www.kompas.com/sekolah/%' THEN 1
+                    WHEN url LIKE 'https://www.kompas.com/pendidikan-khusus/%' THEN 1
+                    WHEN url LIKE 'https://www.kompas.com/beasiswa/%' THEN 1
+                    WHEN url LIKE 'https://www.kompas.com/literasi/%' THEN 1
+                    WHEN url LIKE 'https://www.kompas.com/stori/%' THEN 1
+                    WHEN url LIKE 'https://edukasi.kompas.com/%' THEN 1
                     WHEN url LIKE '%detik.com/edu/%' THEN 2
                     WHEN url LIKE '%liputan6.com/read/%' THEN 2
                     WHEN url LIKE '%republika.co.id/berita/%' THEN 2
@@ -400,7 +401,7 @@ class CrawlEngine:
         host = (p.netloc or "").lower()
         path = (p.path or "").lower()
 
-        # Highest Priority (0): Ruangguru, Zenius, Quipper, Kompas EDU
+        # Highest Priority (0): Ruangguru, Zenius, Quipper
         if host.endswith("ruangguru.com") and "/blog/" in path:
             return 0
         if host.endswith("quipper.com") and "/blog/" in path:
@@ -408,15 +409,16 @@ class CrawlEngine:
         if host.endswith("zenius.net") and "/blog/" in path:
             return 0
         
+        # Tier 1 Priority (1): Kompas EDU subcategories
         kompas_edu_paths = (
             "/edu/", "/skola/", "/edu-news/", "/perguruan-tinggi/", 
             "/sekolah/", "/pendidikan-khusus/", "/beasiswa/", 
             "/literasi/", "/stori/"
         )
         if host == "www.kompas.com" and path.startswith(kompas_edu_paths):
-            return 0
+            return 1
         if host == "edukasi.kompas.com":
-            return 0
+            return 1
 
         # Secondary Target Priority (2): Detik, Liputan6, Republika
         if host.endswith("detik.com") and "/edu/" in path:
@@ -2351,7 +2353,7 @@ class CrawlEngine:
 
                     # Build & save record (JSONL)
                     record = build_record(url, title, content)
-                    level = classify_level(content, url)
+                    level = classify_level(text=content, url=url, kw_hits=kw_hits)
                     kw = kw_hits
 
                     record["metadata"]["level"] = level

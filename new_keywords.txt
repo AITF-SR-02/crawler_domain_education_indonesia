@@ -1,0 +1,49 @@
+topik_pedagogi = [
+    "metode socrates", "pertanyaan sokratis", "dialog sokratis", 
+    "teknik perancah", "scaffolding pembelajaran", "bantuan kognitif guru",
+    "pembelajaran berdiferensiasi", "diferensiasi kelas", "gaya belajar siswa",
+    "pembelajaran berbasis proyek", "pjbl", "pembelajaran proyek",
+    "pembelajaran berbasis masalah", "pbl", "pemecahan masalah siswa",
+    "pembelajaran kolaboratif", "belajar kelompok efektif", "diskusi kelompok",
+    "pembelajaran berpusat pada siswa", "pendekatan scl",
+    "gamifikasi pembelajaran", "pembelajaran berbasis game", "media pembelajaran interaktif"
+]
+
+topik_metakognisi = [
+    "regulasi diri dalam belajar", "pembelajaran mandiri", "kemandirian belajar",
+    "strategi metakognisi", "kesadaran metakognitif", "berpikir tentang berpikir",
+    "teori beban kognitif", "kapasitas memori kerja", "kelebihan beban informasi",
+    "pengulangan berjarak", "latihan mengingat kembali", "strategi menghafal",
+    "teknik pomodoro", "manajemen waktu akademik", "pengaturan jadwal belajar",
+    "rentang perhatian siswa", "konsentrasi belajar", "fokus belajar siswa"
+]
+
+topik_psikologi = [
+    "kejenuhan akademik", "kelelahan belajar", "burnout siswa",
+    "prokrastinasi akademik", "penundaan tugas akademik", "malas belajar",
+    "keterlibatan siswa", "partisipasi belajar", "keaktifan siswa di kelas",
+    "pola pikir berkembang", "mindset bertumbuh", "keyakinan kemampuan diri",
+    "motivasi intrinsik belajar", "motivasi berprestasi", "dorongan belajar",
+    "kecemasan akademik", "stres akademik", "tekanan belajar siswa",
+    "pengaruh teman sebaya", "konformitas teman sebaya", "lingkungan pergaulan siswa",
+    "pembelajaran sosial emosional", "kecerdasan emosional siswa", "keterampilan sosial anak",
+    "perkembangan kognitif siswa", "tahap perkembangan anak"
+]
+
+topik_akademik = [
+    "asesmen formatif", "penilaian formatif", "umpan balik guru",
+    "kurikulum merdeka", "evaluasi kurikulum merdeka", "profil pelajar pancasila",
+    "keterampilan berpikir tingkat tinggi", "soal hots", "berpikir kritis siswa",
+    "transisi perguruan tinggi", "kesiapan kuliah", "adaptasi mahasiswa baru",
+    "pengambilan keputusan karier", "kematangan karier", "perencanaan masa depan siswa",
+    "efektivitas beasiswa", "dampak beasiswa", "motivasi penerima beasiswa"
+]
+
+topik_komunikasi_konseling = [
+    "wawancara motivasional", "teknik konseling motivasi",
+    "komunikasi asertif", "perilaku asertif siswa", "menyampaikan pendapat",
+    "mendengarkan aktif", "keterampilan attending", "menyimak empatik",
+    "komunikasi empatik", "empati guru", "kedekatan guru dan siswa",
+    "validasi emosi", "regulasi emosi siswa", "penerimaan perasaan siswa",
+    "konseling realitas", "pendekatan realita", "bimbingan konseling sekolah"
+]

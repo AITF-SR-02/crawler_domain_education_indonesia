@@ -12,8 +12,9 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from config import (
-    CLASSIFICATION_RULES,
     TARGET_KEYWORDS,
+    ALL_PEDAGOGI,
+    ALL_PENDIDIKAN,
     MIN_RELEVANCE_KEYWORDS,
     SCIENCE_VOCAB_ID,
 )
@@ -110,17 +111,24 @@ def fuzzy_science_relevance(
 # Klasifikasi Otomatis
 # ---------------------------------------------------------------------------
 
-def classify_level(text: str, url: str = "") -> str:
-    """Menentukan level pendidikan (SD / SMP / SMA / Umum) berdasarkan teks & URL.
-
-    Mengecek teks + URL terhadap CLASSIFICATION_RULES secara berurutan.
-    Return level pertama yang cocok, atau 'Umum' jika tidak ada match.
+def classify_level(text: str, url: str = "", kw_hits: list[str] | None = None) -> str:
+    """Menentukan kategori (Pedagogi / Pendidikan / Umum) berdasarkan relevansi keyword.
+    
+    Menghitung berapa keyword Pedagogi vs Pendidikan yang ditemukan.
     """
-    combined = f"{text} {url}"
-    for level, pattern in CLASSIFICATION_RULES:
-        if pattern.search(combined):
-            return level
-    return "Umum"
+    if kw_hits is None:
+        kw_hits = extract_keywords_found(f"{text} {url}")
+        
+    pedagogi_score = sum(1 for kw in kw_hits if kw in ALL_PEDAGOGI)
+    pendidikan_score = sum(1 for kw in kw_hits if kw in ALL_PENDIDIKAN)
+    
+    if pedagogi_score == 0 and pendidikan_score == 0:
+        return "Umum"
+        
+    if pedagogi_score >= pendidikan_score:
+        return "Pedagogi"
+    else:
+        return "Pendidikan"
 
 
 # ---------------------------------------------------------------------------
@@ -694,7 +702,7 @@ def build_cpt_record(
         "text": plain,
         "source": source_domain or urlparse(url).netloc,
         "url": url,
-        "level": level,
+        "topic": level,
         "word_count": word_count,
     }
 
@@ -717,14 +725,16 @@ def build_record(
     domain = urlparse(url).netloc
     word_count = len(markdown_content.split())
 
+    kw_hits = extract_keywords_found(combined_text)
+
     return {
         "url": url,
         "title": title,
         "markdown_content": markdown_content,
         "timestamp": timestamp,
         "metadata": {
-            "level": classify_level(combined_text),
-            "keywords_found": extract_keywords_found(combined_text),
+            "level": classify_level(text=combined_text, kw_hits=kw_hits),
+            "keywords_found": kw_hits,
             "source_domain": domain,
             "word_count": word_count,
         },

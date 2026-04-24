@@ -114,156 +114,88 @@ CLASSIFICATION_RULES: list[tuple[str, re.Pattern[str]]] = [
 # ---------------------------------------------------------------------------
 # Target Keywords (Strategi Tim 2) — COMPREHENSIVE
 # ---------------------------------------------------------------------------
-TARGET_KEYWORDS: list[str] = [
-    # --- Pendidikan Umum & Jenjang ---
-    "Pendidikan Indonesia",
-    "Sekolah Rakyat",
-    "Sekolah Dasar",
-    "Sekolah Menengah Pertama",
-    "Sekolah Menengah Atas",
-    "Sekolah Menengah Kejuruan",
-    "Madrasah",
-    # --- Kurikulum ---
-    "Kurikulum Nasional",
-    "Kurikulum Merdeka",
-    "Kurikulum 2013",
-    "Capaian Pembelajaran",
-    "Alur Tujuan Pembelajaran",
-    "Modul Ajar",
-    "Silabus",
-    "RPP",
-    "Rencana Pelaksanaan Pembelajaran",
-    # --- Kognitif & Asesmen ---
-    "Kemampuan Kognitif",
-    "Kognitif Siswa",
-    "Ujian Nasional",
-    "Asesmen Nasional",
-    "Asesmen Kompetensi Minimum",
-    "Asesmen Formatif",
-    "Asesmen Sumatif",
-    "Evaluasi Pembelajaran",
-    "Soal Ujian",
-    # --- STEM ---
-    "Matematika",
-    "Fisika",
-    "Kimia",
-    "Biologi",
-    "Sains",
-    "IPA",
-    "Informatika",
-    "Koding",
-    # --- Non-STEM ---
-    "Ekonomi",
-    "Sejarah",
-    "Sosiologi",
-    "Geografi",
-    "IPS",
-    "Ilmu Pengetahuan Sosial",
-    # --- Mata Pelajaran Lokal ---
-    "Pendidikan Kewarganegaraan",
-    "PKN",
-    "PPKN",
-    "Sejarah Indonesia",
-    "Bahasa Indonesia",
-    "Bahasa Inggris",
-    # --- Karakter & Nasional ---
-    "Pancasila",
-    "Profil Pelajar Pancasila",
-    "Pendidikan Karakter",
-    "Nasionalisme",
-    # --- Kelembagaan ---
-    "Kementerian Pendidikan",
-    "Kemdikbud",
-    "Kemendikbudristek",
-    "Kemdikdasmen",
-    "Kemdiktisaintek",
-    "Kemensos Sekolah Rakyat",
-    "Badan Standar Kurikulum dan Asesmen Pendidikan",
-    "BSKAP",
-    "Pusat Kurikulum dan Pembelajaran",
-    # --- Soal QnA & Level ---
-    "Soal Mudah SD SMP SMA",
-    "Soal Menengah SD SMP SMA",
-    "Soal Sulit SD SMP SMA",
-    "Olimpiade Sains Nasional (OSN) SD SMP SMA",
-    "Latihan Soal",
-    "Bank Soal",
-    "Pembahasan Soal",
-    "Kunci Jawaban",
-    # --- Lainnya ---
-    "Materi Pelajaran",
-    "Buku Teks",
-    "Bahan Ajar",
-    "Pembelajaran",
-    "Guru Penggerak",
-    "Projek Penguatan Profil Pelajar Pancasila",
 
-    # TOPIK_PEMBELAJARAN
-    "socratic",
-    "teknik pengajaran",
-    "scaffolding",
-    "strategi pengajaran",
-    "feedback untuk siswa",
-    "growth mindset",
-    "motivasi belajar",
-    "strategi belajar",
-    "kesulitan belajar",
-    "pembelajaran kolaboratif",
-    "pembelajaran efektif",
-    "pembelajaran eksperimen",
-    "pembelajaran aktif",
-
-    # TOPIK_PRODUKTIVITAS
-    "teknik pomodoro",
-    "belajar efektif",
-    "metode belajar efektif",
-    "teknik belajar efisien",
-    "strategi belajar efektif",
-    "metode mencatat cornell",
-    "mind mapping",
-    "manajemen waktu",
-    "strategi meningkatkan fokus",
-
-    # TOPIK_PSIKOLOGI
-    "burnout",
-    "kecemasan",
-    "adaptasi siswa",
-    "kesehatan mental pelajar",
-    "stres akademik",
-    "motivasi siswa",
-    "menunda pekerjaan",
-    "beasiswa",
-    "rekomendasi beasiswa",
-
-    # TOPIK_KOMUNIKASI_EMPATIK
-    "motivational interviewing",
-    "komunikasi asertif",
-    "asertif",
-    "active listening",
-    "empati dalam konseling",
-    "empatik communication",
-    "empati",
-    "komunikasi empatik",
-    "pendekatan persuasif",
-    "validasi emosi",
-    "validasi emosi siswa",
-    "konseling realitas",
-    "konseling siswa",
-    "konseling",
-    "motivasi",
-
-    # TOPIK_ETIKA_DAN_BATASAN
-    "kode etik",
-    "batasan profesional",
-    "penanganan krisis",
-    "pertolongan psikologis",
-    "pencegahan perundungan",
-    "etika komunikasi",
-    "kedaruratan mental"
+TOPIK_PEDAGOGI = [
+    "metode socrates", "pertanyaan sokratis", "dialog sokratis", 
+    "teknik perancah", "scaffolding pembelajaran", "bantuan kognitif guru",
+    "pembelajaran berdiferensiasi", "diferensiasi kelas", "gaya belajar siswa",
+    "pembelajaran berbasis proyek", "pjbl", "pembelajaran proyek",
+    "pembelajaran berbasis masalah", "pbl", "pemecahan masalah siswa",
+    "pembelajaran kolaboratif", "belajar kelompok efektif", "diskusi kelompok",
+    "pembelajaran berpusat pada siswa", "pendekatan scl",
+    "gamifikasi pembelajaran", "pembelajaran berbasis game", "media pembelajaran interaktif"
 ]
 
-# ---------------------------------------------------------------------------
-# Minimum Relevance — konten harus mengandung minimal N keyword untuk disimpan
+TOPIK_METAKOGNISI = [
+    "regulasi diri dalam belajar", "pembelajaran mandiri", "kemandirian belajar",
+    "strategi metakognisi", "kesadaran metakognitif", "berpikir tentang berpikir",
+    "teori beban kognitif", "kapasitas memori kerja", "kelebihan beban informasi",
+    "pengulangan berjarak", "latihan mengingat kembali", "strategi menghafal",
+    "teknik pomodoro", "manajemen waktu akademik", "pengaturan jadwal belajar",
+    "rentang perhatian siswa", "konsentrasi belajar", "fokus belajar siswa"
+]
+
+TOPIK_PSIKOLOGI = [
+    "kejenuhan akademik", "kelelahan belajar", "burnout siswa",
+    "prokrastinasi akademik", "penundaan tugas akademik", "malas belajar",
+    "keterlibatan siswa", "partisipasi belajar", "keaktifan siswa di kelas",
+    "pola pikir berkembang", "mindset bertumbuh", "keyakinan kemampuan diri",
+    "motivasi intrinsik belajar", "motivasi berprestasi", "dorongan belajar",
+    "kecemasan akademik", "stres akademik", "tekanan belajar siswa",
+    "pengaruh teman sebaya", "konformitas teman sebaya", "lingkungan pergaulan siswa",
+    "pembelajaran sosial emosional", "kecerdasan emosional siswa", "keterampilan sosial anak",
+    "perkembangan kognitif siswa", "tahap perkembangan anak"
+]
+
+TOPIK_AKADEMIK = [
+    "asesmen formatif", "penilaian formatif", "umpan balik guru",
+    "kurikulum merdeka", "evaluasi kurikulum merdeka", "profil pelajar pancasila",
+    "keterampilan berpikir tingkat tinggi", "soal hots", "berpikir kritis siswa",
+    "transisi perguruan tinggi", "kesiapan kuliah", "adaptasi mahasiswa baru",
+    "pengambilan keputusan karier", "kematangan karier", "perencanaan masa depan siswa",
+    "efektivitas beasiswa", "dampak beasiswa", "motivasi penerima beasiswa"
+]
+
+TOPIK_KOMUNIKASI_KONSELING = [
+    "wawancara motivasional", "teknik konseling motivasi",
+    "komunikasi asertif", "perilaku asertif siswa", "menyampaikan pendapat",
+    "mendengarkan aktif", "keterampilan attending", "menyimak empatik",
+    "komunikasi empatik", "empati guru", "kedekatan guru dan siswa",
+    "validasi emosi", "regulasi emosi siswa", "penerimaan perasaan siswa",
+    "konseling realitas", "pendekatan realita", "bimbingan konseling sekolah"
+]
+
+TOPIK_PENDIDIKAN_UMUM = [
+    "Pendidikan Indonesia", "Sekolah Rakyat", "Sekolah Dasar", "Sekolah Menengah Pertama",
+    "Sekolah Menengah Atas", "Sekolah Menengah Kejuruan", "Madrasah",
+    "Kurikulum Nasional", "Kurikulum 2013", "Capaian Pembelajaran", "Alur Tujuan Pembelajaran",
+    "Modul Ajar", "Silabus", "RPP", "Rencana Pelaksanaan Pembelajaran",
+    "Kemampuan Kognitif", "Kognitif Siswa", "Ujian Nasional", "Asesmen Nasional",
+    "Matematika", "Fisika", "Kimia", "Biologi", "Sains", "IPA", "Informatika", "Koding",
+    "Ekonomi", "Sejarah", "Sosiologi", "Geografi", "IPS", "Ilmu Pengetahuan Sosial",
+    "Pendidikan Kewarganegaraan", "PKN", "PPKN", "Sejarah Indonesia", "Bahasa Indonesia", "Bahasa Inggris",
+    "Pancasila", "Profil Pelajar Pancasila", "Pendidikan Karakter", "Nasionalisme",
+    "Kementerian Pendidikan", "Kemdikbud", "Kemendikbudristek", "Kemdikdasmen", "Kemdiktisaintek",
+    "Kemensos Sekolah Rakyat", "Badan Standar Kurikulum dan Asesmen Pendidikan", "BSKAP",
+    "Pusat Kurikulum dan Pembelajaran",
+    "Soal Mudah SD SMP SMA", "Soal Menengah SD SMP SMA", "Soal Sulit SD SMP SMA",
+    "Olimpiade Sains Nasional (OSN) SD SMP SMA", "Latihan Soal", "Bank Soal", "Pembahasan Soal", "Kunci Jawaban",
+    "Materi Pelajaran", "Buku Teks", "Bahan Ajar", "Pembelajaran", "Guru Penggerak",
+    "Projek Penguatan Profil Pelajar Pancasila",
+    "rumus matematika", "aljabar", "kalkulus", "trigonometri", "geometri",
+    "konsep fisika", "hukum newton", "termodinamika", "gelombang elektromagnetik",
+    "konsep kimia", "ikatan kimia", "reaksi redoks", "stoikiometri",
+    "konsep biologi", "sel tumbuhan", "sistem pencernaan", "genetika",
+    "konsep sosiologi", "konsep geografi",
+    "kalimat efektif", "struktur teks", "teks eksplanasi", "teks prosedur", "analisis cerpen",
+    "seni budaya"
+]
+
+ALL_PEDAGOGI = TOPIK_PEDAGOGI + TOPIK_METAKOGNISI + TOPIK_PSIKOLOGI + TOPIK_KOMUNIKASI_KONSELING
+ALL_PENDIDIKAN = TOPIK_AKADEMIK + TOPIK_PENDIDIKAN_UMUM
+
+TARGET_KEYWORDS: list[str] = ALL_PEDAGOGI + ALL_PENDIDIKAN
+
 # ---------------------------------------------------------------------------
 MIN_RELEVANCE_KEYWORDS: int = 4
 
