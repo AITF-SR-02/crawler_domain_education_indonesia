@@ -84,6 +84,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="Seed URL to enqueue at start (useful when only-domain set).",
     )
+    parser.add_argument(
+        "--blacklist",
+        type=str,
+        default=None,
+        help="Comma-separated list of domains to block (e.g. kompas.com,www.kompas.com).",
+    )
 
     # Test-only limits
     parser.add_argument(
@@ -114,6 +120,12 @@ async def main(args: argparse.Namespace) -> None:
     # Apply domain restriction if provided via CLI
     if getattr(args, "only_domain", None):
         settings.DOMAIN_WHITELIST = [args.only_domain]
+
+    # Apply blacklist
+    if getattr(args, "blacklist", None):
+        from utils.discovery import BLOCKED_DOMAINS
+        for domain in args.blacklist.split(","):
+            BLOCKED_DOMAINS.add(domain.strip().lower())
 
     # Apply CLI overrides
     if args.restart:

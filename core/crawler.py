@@ -335,18 +335,29 @@ class CrawlEngine:
                 "CREATE INDEX IF NOT EXISTS idx_url_jobs_priority ON url_jobs(priority)"
             )
 
-            # Best-effort backfill (idempotent enough): prioritize Kompas EDU URLs
+            # Best-effort backfill: prioritize non-Kompas domains to overcome the 190k Kompas backlog
             await self._db.execute(
                 """
                 UPDATE url_jobs
                 SET priority = CASE
-                    WHEN url LIKE 'https://www.kompas.com/edu/%' THEN 0
-                    WHEN url LIKE 'https://www.kompas.com/skola/%' THEN 0
-                    WHEN url LIKE 'https://edukasi.kompas.com/%' THEN 1
-                    WHEN domain LIKE '%kompas.com' THEN 2
+                    WHEN url LIKE '%detik.com/edu/%' THEN 0
+                    WHEN url LIKE '%ruangguru.com/blog/%' THEN 0
+                    WHEN url LIKE '%liputan6.com/read/%' THEN 0
+                    WHEN url LIKE '%republika.co.id/berita/%' THEN 0
+                    WHEN url LIKE '%quipper.com/id/blog/%' THEN 0
+                    WHEN url LIKE '%zenius.net/blog/%' THEN 0
+                    WHEN url LIKE 'https://www.kompas.com/edu/%' THEN 2
+                    WHEN url LIKE 'https://www.kompas.com/skola/%' THEN 2
+                    WHEN url LIKE 'https://edukasi.kompas.com/%' THEN 2
+                    WHEN domain LIKE '%detik.com' THEN 3
+                    WHEN domain LIKE '%ruangguru.com' THEN 3
+                    WHEN domain LIKE '%liputan6.com' THEN 3
+                    WHEN domain LIKE '%republika.co.id' THEN 3
+                    WHEN domain LIKE '%quipper.com' THEN 3
+                    WHEN domain LIKE '%zenius.net' THEN 3
+                    WHEN domain LIKE '%kompas.com' THEN 5
                     ELSE 10
                 END
-                WHERE priority IS NULL OR priority IN (2, 10)
                 """
             )
         except Exception:
@@ -370,7 +381,7 @@ class CrawlEngine:
         await self._db.commit()
 
     def _url_priority(self, url: str) -> int:
-        """Lower number = higher priority."""
+        """Lower number = higher priority. Non-Kompas domains get top priority to bypass backlog."""
         u = (url or "").strip()
         if not u:
             return 10
@@ -382,32 +393,35 @@ class CrawlEngine:
         host = (p.netloc or "").lower()
         path = (p.path or "").lower()
 
-        if host == "www.kompas.com" and (path.startswith("/edu/") or path.startswith("/skola/")):
+        # Non-Kompas Target paths get highest priority (0)
+        if host.endswith("detik.com") and "/edu/" in path:
             return 0
+        if host.endswith("ruangguru.com") and "/blog/" in path:
+            return 0
+        if host.endswith("liputan6.com") and "/read/" in path:
+            return 0
+        if host.endswith("republika.co.id") and "/berita/" in path:
+            return 0
+        if host.endswith("quipper.com") and "/blog/" in path:
+            return 0
+        if host.endswith("zenius.net") and "/blog/" in path:
+            return 0
+
+        # Kompas Target paths get lower priority (2) because of the massive backlog
+        if host == "www.kompas.com" and (path.startswith("/edu/") or path.startswith("/skola/")):
+            return 2
         if host == "edukasi.kompas.com":
-            return 1
-        if host.endswith("kompas.com"):
             return 2
 
-        # New domains (zara_adjust.md) — slightly lower priority than kompas
-        if host.endswith("detik.com") and "/edu/" in path:
+        # Non-Kompas Generic pages
+        if host.endswith("detik.com") or host.endswith("ruangguru.com") or \
+           host.endswith("liputan6.com") or host.endswith("republika.co.id") or \
+           host.endswith("quipper.com") or host.endswith("zenius.net"):
             return 3
-        if host.endswith("ruangguru.com") and "/blog/" in path:
-            return 4
-        if host.endswith("liputan6.com") and "/read/" in path:
-            return 5
-        if host.endswith("detik.com") or host.endswith("ruangguru.com") or host.endswith("liputan6.com"):
-            return 6
 
-        # Batch 2 domains (zara_adjust_1.md)
-        if host.endswith("republika.co.id") and "/berita/" in path:
-            return 7
-        if host.endswith("quipper.com") and "/blog/" in path:
-            return 8
-        if host.endswith("zenius.net") and "/blog/" in path:
-            return 9
-        if host.endswith("republika.co.id") or host.endswith("quipper.com") or host.endswith("zenius.net"):
-            return 9
+        # Kompas Generic pages
+        if host.endswith("kompas.com"):
+            return 5
 
         return 10
 
@@ -506,11 +520,16 @@ class CrawlEngine:
                 await self._db.execute("BEGIN IMMEDIATE")
                 query = f"""
                     SELECT id, url, domain, attempts, metadata_json
-                    FROM url_jobs
-                    WHERE status='pending'
-                      AND (next_retry_at IS NULL OR next_retry_at <= ?)
-                      {domain_filter_sql}
-                    ORDER BY priority ASC, created_at
+                    FROM (
+                        SELECT id, url, domain, attempts, metadata_json, priority,
+                               ROW_NUMBER() OVER (PARTITION BY domain ORDER BY priority ASC, created_at ASC) as rn
+                        FROM url_jobs
+                        WHERE status='pending'
+                          AND (next_retry_at IS NULL OR next_retry_at <= ?)
+                          {domain_filter_sql}
+                    )
+                    WHERE rn = 1
+                    ORDER BY priority ASC, RANDOM()
                     LIMIT 1
                 """
                 cur = await self._db.execute(
