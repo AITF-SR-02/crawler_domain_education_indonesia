@@ -150,6 +150,8 @@ TARGET_KEYWORDS: list[str] = [
     "Biologi",
     "Sains",
     "IPA",
+    "Informatika",
+    "Koding",
     # --- Non-STEM ---
     "Ekonomi",
     "Sejarah",
@@ -195,12 +197,75 @@ TARGET_KEYWORDS: list[str] = [
     "Pembelajaran",
     "Guru Penggerak",
     "Projek Penguatan Profil Pelajar Pancasila",
+
+    # TOPIK_PEMBELAJARAN
+    "socratic",
+    "teknik pengajaran",
+    "scaffolding",
+    "strategi pengajaran",
+    "feedback untuk siswa",
+    "growth mindset",
+    "motivasi belajar",
+    "strategi belajar",
+    "kesulitan belajar",
+    "pembelajaran kolaboratif",
+    "pembelajaran efektif",
+    "pembelajaran eksperimen",
+    "pembelajaran aktif",
+
+    # TOPIK_PRODUKTIVITAS
+    "teknik pomodoro",
+    "belajar efektif",
+    "metode belajar efektif",
+    "teknik belajar efisien",
+    "strategi belajar efektif",
+    "metode mencatat cornell",
+    "mind mapping",
+    "manajemen waktu",
+    "strategi meningkatkan fokus",
+
+    # TOPIK_PSIKOLOGI
+    "burnout",
+    "kecemasan",
+    "adaptasi siswa",
+    "kesehatan mental pelajar",
+    "stres akademik",
+    "motivasi siswa",
+    "menunda pekerjaan",
+    "beasiswa",
+    "rekomendasi beasiswa",
+
+    # TOPIK_KOMUNIKASI_EMPATIK
+    "motivational interviewing",
+    "komunikasi asertif",
+    "asertif",
+    "active listening",
+    "empati dalam konseling",
+    "empatik communication",
+    "empati",
+    "komunikasi empatik",
+    "pendekatan persuasif",
+    "validasi emosi",
+    "validasi emosi siswa",
+    "konseling realitas",
+    "konseling siswa",
+    "konseling",
+    "motivasi",
+
+    # TOPIK_ETIKA_DAN_BATASAN
+    "kode etik",
+    "batasan profesional",
+    "penanganan krisis",
+    "pertolongan psikologis",
+    "pencegahan perundungan",
+    "etika komunikasi",
+    "kedaruratan mental"
 ]
 
 # ---------------------------------------------------------------------------
 # Minimum Relevance — konten harus mengandung minimal N keyword untuk disimpan
 # ---------------------------------------------------------------------------
-MIN_RELEVANCE_KEYWORDS: int = 5
+MIN_RELEVANCE_KEYWORDS: int = 4
 
 # ---------------------------------------------------------------------------
 # Indonesian science + humaniora vocabulary (untuk fuzzy relevance)
