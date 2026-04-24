@@ -357,9 +357,9 @@ class CrawlEngine:
                     WHEN url LIKE '%detik.com/edu/%' THEN 2
                     WHEN url LIKE '%liputan6.com/read/%' THEN 2
                     WHEN url LIKE '%republika.co.id/berita/%' THEN 2
-                    WHEN domain LIKE '%ruangguru.com' THEN 3
-                    WHEN domain LIKE '%quipper.com' THEN 3
-                    WHEN domain LIKE '%zenius.net' THEN 3
+                    WHEN domain LIKE '%ruangguru.com' THEN 0
+                    WHEN domain LIKE '%quipper.com' THEN 0
+                    WHEN domain LIKE '%zenius.net' THEN 0
                     WHEN domain LIKE '%kompas.com' THEN 3
                     WHEN domain LIKE '%detik.com' THEN 5
                     WHEN domain LIKE '%liputan6.com' THEN 5
@@ -401,12 +401,12 @@ class CrawlEngine:
         host = (p.netloc or "").lower()
         path = (p.path or "").lower()
 
-        # Highest Priority (0): Ruangguru, Zenius, Quipper
-        if host.endswith("ruangguru.com") and "/blog/" in path:
+        # Highest Priority (0): Ruangguru, Zenius, Quipper (ALL PATHS)
+        if host.endswith("ruangguru.com"):
             return 0
-        if host.endswith("quipper.com") and "/blog/" in path:
+        if host.endswith("quipper.com"):
             return 0
-        if host.endswith("zenius.net") and "/blog/" in path:
+        if host.endswith("zenius.net"):
             return 0
         
         # Tier 1 Priority (1): Kompas EDU subcategories
