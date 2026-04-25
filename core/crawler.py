@@ -39,6 +39,20 @@ try:
 except Exception:  # pragma: no cover
     BeautifulSoup = None
 
+# Scrapling: adaptive web scraping framework (optional)
+# Fetcher = fast httpx + stealth headers; StealthyFetcher = headless browser bypass
+try:
+    from scrapling.fetchers import Fetcher as ScraplingFetcher
+except Exception:  # pragma: no cover
+    ScraplingFetcher = None
+
+try:
+    from scrapling.fetchers import StealthyFetcher as ScraplingStealthyFetcher
+except Exception:  # pragma: no cover
+    ScraplingStealthyFetcher = None
+
+_SCRAPLING_AVAILABLE = ScraplingFetcher is not None
+
 from config import Settings, TARGET_KEYWORDS, SCIENCE_VOCAB_ID
 from utils.processor import (
     build_record,
@@ -1815,19 +1829,119 @@ class CrawlEngine:
     # Crawl worker
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Page fetching: Scrapling → aiohttp fallback
+    # ------------------------------------------------------------------
+
+    async def _fetch_page(self, url: str, aiohttp_session: aiohttp.ClientSession) -> tuple[str | None, str | None]:
+        """Fetch a page's HTML using the best available method.
+
+        Strategy:
+        1. Scrapling Fetcher (httpx-based, stealth headers) — fast, no browser
+        2. If 403/blocked → Scrapling StealthyFetcher (headless stealth browser)
+        3. If Scrapling not installed → plain aiohttp
+
+        Returns:
+            (html, error) — html is the page HTML (or None), error is the error message (or None)
+        """
+        timeout_s = max(10, int(self.settings.PAGE_TIMEOUT / 1000))
+
+        # --- Strategy 1: Scrapling Fetcher (fast httpx + anti-fingerprint headers) ---
+        if ScraplingFetcher is not None:
+            try:
+                page = await ScraplingFetcher.async_fetch(
+                    url,
+                    stealthy_headers=True,
+                    follow_redirects=True,
+                    timeout=timeout_s,
+                )
+                status = getattr(page, 'status', 200)
+                if status and int(status) >= 400:
+                    # Try StealthyFetcher for blocked pages
+                    if int(status) in (403, 429, 503) and ScraplingStealthyFetcher is not None:
+                        logger.debug("Fetcher got HTTP %d for %s, trying StealthyFetcher...", status, url)
+                        return await self._fetch_page_stealth(url)
+                    return None, f"HTTP {status}"
+
+                html = str(page.html_content) if hasattr(page, 'html_content') else str(page)
+                if html:
+                    return html, None
+                return None, "empty_response"
+            except Exception as exc:
+                err_str = str(exc)[:200]
+                # If it looks like a block, try stealth
+                if ScraplingStealthyFetcher is not None and any(
+                    kw in err_str.lower() for kw in ["403", "blocked", "captcha", "challenge", "cloudflare"]
+                ):
+                    logger.debug("Fetcher error for %s (%s), trying StealthyFetcher...", url, err_str[:60])
+                    return await self._fetch_page_stealth(url)
+                return None, f"scrapling:{err_str}"
+
+        # --- Strategy 2 (no Scrapling): plain aiohttp ---
+        try:
+            async with aiohttp_session.get(url) as resp:
+                if resp.status >= 400:
+                    return None, f"HTTP {resp.status}"
+                html = await resp.text(errors="ignore")
+                return html, None
+        except Exception as exc:
+            return None, f"fetch:{str(exc)[:200]}"
+
+    async def _fetch_page_stealth(self, url: str) -> tuple[str | None, str | None]:
+        """Fetch page using Scrapling's StealthyFetcher (headless stealth browser).
+
+        Used as escalation when Fetcher gets 403/blocked.
+        """
+        if ScraplingStealthyFetcher is None:
+            return None, "stealthy_fetcher_not_installed"
+        try:
+            page = await ScraplingStealthyFetcher.async_fetch(
+                url,
+                headless=True,
+                block_webrtc=True,
+                disable_resources=["image", "media", "font"],
+                google_search=True,
+                network_idle=True,
+                timeout=30000,
+            )
+            status = getattr(page, 'status', 200)
+            if status and int(status) >= 400:
+                return None, f"stealth:HTTP {status}"
+            html = str(page.html_content) if hasattr(page, 'html_content') else str(page)
+            if html:
+                return html, None
+            return None, "stealth:empty_response"
+        except Exception as exc:
+            return None, f"stealth:{str(exc)[:200]}"
+
+    # ------------------------------------------------------------------
+    # Crawl worker
+    # ------------------------------------------------------------------
+
     async def _crawl_worker(self, worker_id: int) -> None:
         """Crawl worker (PRD v2.0): claim pending jobs from SQLite, crawl, extract, persist."""
         logger.info("🕷 Crawl worker %d started", worker_id)
         consecutive_errors = 0
 
-        # Create a persistent session for this worker
+        # aiohttp session as fallback (only used if Scrapling not installed)
         timeout = aiohttp.ClientTimeout(total=max(10, int(self.settings.PAGE_TIMEOUT / 1000)))
         default_headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-            "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept-Language": "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1",
         }
         session = aiohttp.ClientSession(timeout=timeout, headers=default_headers)
+
+        if _SCRAPLING_AVAILABLE:
+            logger.info("🛡 Worker %d: using Scrapling Fetcher (stealth httpx)", worker_id)
+        else:
+            logger.warning("⚠ Worker %d: Scrapling not installed, using plain aiohttp (may get blocked)", worker_id)
 
         try:
             while not self.stop_event.is_set():
@@ -1855,19 +1969,12 @@ class CrawlEngine:
                 job_finished = False
 
                 try:
-                    # Crawl the page using aiohttp
-                    try:
-                        async with session.get(url) as resp:
-                            if resp.status >= 400:
-                                await self.stats.incr("urls_failed")
-                                await self._mark_job_failed(job_id, error=f"HTTP {resp.status}")
-                                job_finished = True
-                                continue
-                            html = await resp.text(errors="ignore")
-                    except Exception as exc:
+                    # Fetch the page using Scrapling → aiohttp fallback
+                    html, fetch_error = await self._fetch_page(url, session)
+                    if fetch_error:
                         await self.stats.incr("urls_failed")
                         consecutive_errors += 1
-                        await self._mark_job_failed(job_id, error=f"fetch:{str(exc)[:200]}")
+                        await self._mark_job_failed(job_id, error=fetch_error)
                         job_finished = True
                         if consecutive_errors >= 10:
                             logger.warning(
