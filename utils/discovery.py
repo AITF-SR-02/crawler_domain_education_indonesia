@@ -1003,17 +1003,29 @@ class DiscoveryEngine:
         if not query:
             return []
 
-        # Try duckduckgo-search library first
+        # Try new 'ddgs' library first, fallback to old 'duckduckgo_search'
         try:
-            from duckduckgo_search import DDGS
             try:
-                ddgs = DDGS(timeout=20)
-                results = ddgs.text(
-                    query,
-                    region="id-id",        # Indonesia region
-                    safesearch="off",
-                    max_results=30,
-                )
+                from ddgs import DDGS
+            except ImportError:
+                from duckduckgo_search import DDGS
+                
+            import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                try:
+                    ddgs = DDGS(timeout=20)
+                    results = ddgs.text(
+                        query,
+                        region="id-id",        # Indonesia region
+                        safesearch="off",
+                        max_results=30,
+                    )
+                except Exception as e:
+                    # Sometimes the library signature changes or fails internally
+                    logger.warning("DDGS text() error: %s", e)
+                    results = []
+
                 found = [
                     r.get("href")
                     for r in results
@@ -1025,10 +1037,8 @@ class DiscoveryEngine:
                     len(found), query,
                 )
                 return found
-            except Exception as e:
-                logger.warning("DDGS library error: %s — falling back to HTTP", e)
-        except ImportError:
-            logger.debug("duckduckgo-search not installed, using HTTP fallback")
+        except Exception as e:
+            logger.warning("DDGS library error: %s — falling back to HTTP", e)
 
         # Fallback: plain HTTP scraping (may get 403)
         return await self._fetch_and_parse_html(
@@ -1060,9 +1070,9 @@ class DiscoveryEngine:
                 )
                 return found
             except Exception as e:
-                logger.warning("Scrapling StealthyFetcher error: %s — falling back to HTTP", e)
-        except ImportError:
-            logger.debug("scrapling not installed, using HTTP fallback for Bing")
+                logger.warning("Scrapling StealthyFetcher fetch error: %s — falling back to HTTP", e)
+        except Exception as e:
+            logger.warning("Scrapling StealthyFetcher missing/import error: %s. Using HTTP fallback.", e)
 
         # Fallback: plain HTTP (may get 0 results due to bot detection)
         return await self._fetch_and_parse_html(

@@ -123,7 +123,26 @@ TOPIK_PEDAGOGI = [
     "pembelajaran berbasis masalah", "pbl", "pemecahan masalah siswa",
     "pembelajaran kolaboratif", "belajar kelompok efektif", "diskusi kelompok",
     "pembelajaran berpusat pada siswa", "pendekatan scl",
-    "gamifikasi pembelajaran", "pembelajaran berbasis game", "media pembelajaran interaktif"
+    "gamifikasi pembelajaran", "pembelajaran berbasis game", "media pembelajaran interaktif", "siswa", "murid", "pelajar", "mahasiswa", "guru", "dosen", "rektor", "dekan", 
+    "kaprodi", "tutor", "mentor", "instruktur", "fasilitator", "pendidik", "santri", 
+    "ustadz", "kyai", "pustakawan", "laboran", "operator", "wakasek", "kepsek", 
+    "pengawas", "pembina", "tatausaha", "tu", "satpam", "alumni", "civitas", 
+    "kurikulum", "merdeka", "silabus", "rpp", "modul", "materi", "pelajaran", 
+    "kuliah", "sks", "ukt", "spp", "beasiswa", "pip", "kip", "lpdp", "bidikmisi", 
+    "dapodik", "snbp", "snbt", "utbk", "mandiri", "akreditasi", "sertifikasi", 
+    "nuptk", "serdos", "nidn", "nik", "nip", "zonasi", "mutasi", "remedial", 
+    "tryout", "ujian", "anbk", "skripsi", "tesis", "disertasi", "yudisium", 
+    "sidang", "krs", "khs", "ipk", "ospek", "pkkmb", "magang", "kkn", "edutech", "elearning", "daring", "luring", "hybrid", "blended", "lms", "moodle", 
+    "classroom", "webinar", "workshop", "seminar", "simposium", "konferensi", "riset", 
+    "penelitian", "jurnal", "artikel", "ilmiah", "prosiding", "sitasi", "scopus", 
+    "sinta", "doaj", "garuda", "plagiarisme", "turnitin", "abstrak", "metodologi", 
+    "statistik", "kualitatif", "kuantitatif", "digitalisasi", "platform", "aplikasi", 
+    "software", "konten", "tutorial", "video", "podcast", "ebook", "pdf", "kemendikbud", 
+    "kemenag", "ristek", "dikti", "ban-pt", "lpmp", "dinas", "pemerintah", "regulasi", 
+    "permendikbud", "anggaran", "bos", "bop", "hibah", "dana", "pisa", "literasi", 
+    "numerasi", "pedagogi", "andragogi", "asesmen", "evaluasi", "kompetensi", 
+    "karakter", "etika", "moral", "disiplin", "prestasi", "talenta", "minat", 
+    "bakat", "kreativitas", "inovasi", "kritis"
 ]
 
 TOPIK_METAKOGNISI = [
@@ -132,7 +151,15 @@ TOPIK_METAKOGNISI = [
     "teori beban kognitif", "kapasitas memori kerja", "kelebihan beban informasi",
     "pengulangan berjarak", "latihan mengingat kembali", "strategi menghafal",
     "teknik pomodoro", "manajemen waktu akademik", "pengaturan jadwal belajar",
-    "rentang perhatian siswa", "konsentrasi belajar", "fokus belajar siswa"
+    "rentang perhatian siswa", "konsentrasi belajar", "fokus belajar siswa", "pedagogi", "andragogi", "didaktik", "instruksional", "kurikulum",
+    "silabus", "perangkat", "modul", "rpp", "prosem",
+    "prota", "asesmen", "evaluasi", "formatif", "sumatif",
+    "rubrik", "portofolio", "literasi", "numerasi", "tematik",
+    "saintifik", "inquiry", "discovery", "kooperatif", "kolaboratif",
+    "eksperimen", "simulasi", "demonstrasi", "remedial", "pengayaan",
+    "pembelajaran", "pengajaran", "instruktur", "fasilitator", "manajemen",
+    "klasikal", "vokasional", "praktikum", "lokakarya", "microteaching",
+    "blended", "hybrid", "daring", "luring", "flipped"
 ]
 
 TOPIK_PSIKOLOGI = [
@@ -144,7 +171,20 @@ TOPIK_PSIKOLOGI = [
     "kecemasan akademik", "stres akademik", "tekanan belajar siswa",
     "pengaruh teman sebaya", "konformitas teman sebaya", "lingkungan pergaulan siswa",
     "pembelajaran sosial emosional", "kecerdasan emosional siswa", "keterampilan sosial anak",
-    "perkembangan kognitif siswa", "tahap perkembangan anak"
+    "perkembangan kognitif siswa", "tahap perkembangan anak", "psikologi", "kognitif", "afektif", "psikomotorik", "behaviorisme",
+    "konstruktivisme", "humanisme", "sibernetik", "metakognisi", "neuroscience",
+    "motivasi", "atensi", "persepsi", "memori", "retensi",
+    "kecerdasan", "intelegensi", "bakat", "minat", "kepribadian",
+    "karakter", "etika", "moral", "disiplin", "emosional",
+    "sosial", "interaksi", "adaptasi", "perkembangan", "pertumbuhan",
+    "identitas", "aktualisasi", "inklusif", "berkebutuhan", "disabilitas",
+    "autisme", "disleksia", "hiperaktif", "konseling", "bk",
+    "terapi", "intervensi", "diagnostik", "kesulitan", "hambatan",
+    "potensi", "prestasi", "aspirasi", "orientasi", "bimbingan",
+    
+    # Umum & Institusi Terkait
+    "pendidikan", "edukasi", "akademik", "kompetensi", "standar",
+    "mutu", "penjaminan", "sertifikasi", "akreditasi", "profesi"
 ]
 
 TOPIK_AKADEMIK = [
@@ -153,7 +193,26 @@ TOPIK_AKADEMIK = [
     "keterampilan berpikir tingkat tinggi", "soal hots", "berpikir kritis siswa",
     "transisi perguruan tinggi", "kesiapan kuliah", "adaptasi mahasiswa baru",
     "pengambilan keputusan karier", "kematangan karier", "perencanaan masa depan siswa",
-    "efektivitas beasiswa", "dampak beasiswa", "motivasi penerima beasiswa"
+    "efektivitas beasiswa", "dampak beasiswa", "motivasi penerima beasiswa", "TKA", "UTBK", "SNBP", "SNBT", "Ujian Nasional", "Universitas", "akademik", "bahan ajar", "materi ajar", "mahasiswa", "siswa", "siswi", "guru", "dosen", "Pendidikan", "Indonesia", "konseling", "mental", "Sekolah", "Madrasah", "Kurikulum", "SD", "SMP", "SMA", "Biologi", "Fisika", "Kimia", "Matematika", "Informatika", "Geografi", "Antropologi", "Jurusan Kuliah", "Magang Berdampak", "Kampus Merdeka", "Kemdikdasmen", "sekolah", "sd", "smp", "sma", "smk", "madrasah", "ibtidaiyah", "tsanawiyah", 
+    "aliyah", "pesantren", "boarding", "homeschooling", "paud", "tk", "ra", "tpa", 
+    "kb", "pkbm", "skb", "slb", "inklusi", "yayasan", "komite", "perpustakaan", 
+    "pustaka", "laboratorium", "lab", "bengkel", "kantin", "asrama", "aula", "ruang", 
+    "kelas", "bangku", "meja", "papan", "proyektor", "fasilitas", "gedung", "kampus", 
+    "universitas", "institut", "politeknik", "akademi", "stikes", "stkip", "stie", 
+    "vokasi", "diploma", "sarjana", "magister", "doktor", "pascasarjana", "prodi", 
+    "fakultas", "jurusan", "rektorat", "dekanat", "biro", "akademik", "pendaftaran", 
+    "registrasi", "herregistrasi", "wisuda", "alumni", "legalisir", "ijazah", "rapor", 
+    "transkrip", "sertifikat", "piagam", "medali", "piala", "npsn", "nisn", "matematika", "fisika", "kimia", "biologi", "ekonomi", "akuntansi", "geografi", 
+    "sejarah", "sosiologi", "antropologi", "psikologi", "filsafat", "agama", "aqidah", 
+    "fiqih", "hadits", "tafsir", "bahasa", "indonesia", "inggris", "arab", "mandarin", 
+    "jepang", "jerman", "seni", "budaya", "musik", "tari", "lukis", "teater", 
+    "olahraga", "penjas", "atletik", "pancasila", "pkn", "hukum", "politik", 
+    "komunikasi", "jurnalistik", "informatika", "coding", "robotik", "animasi", 
+    "desain", "dkv", "arsitektur", "sipil", "mesin", "elektro", "industri", 
+    "pertambangan", "perminyakan", "pertanian", "peternakan", "perikanan", "kehutanan", 
+    "kesehatan", "kedokteran", "keperawatan", "kebidanan", "farmasi", "gizi", 
+    "lingkungan", "vokasi", "otomotif", "listrik", "bangunan", "rpl", "tkj", 
+    "multimedia", "akuntansi", "pemasaran", "perhotelan", "kuliner", "tata-boga"
 ]
 
 TOPIK_KOMUNIKASI_KONSELING = [
@@ -190,6 +249,7 @@ TOPIK_PENDIDIKAN_UMUM = [
     "kalimat efektif", "struktur teks", "teks eksplanasi", "teks prosedur", "analisis cerpen",
     "seni budaya"
 ]
+
 
 ALL_PEDAGOGI = TOPIK_PEDAGOGI + TOPIK_METAKOGNISI + TOPIK_PSIKOLOGI + TOPIK_KOMUNIKASI_KONSELING
 ALL_PENDIDIKAN = TOPIK_AKADEMIK + TOPIK_PENDIDIKAN_UMUM
