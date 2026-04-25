@@ -1778,14 +1778,15 @@ class CrawlEngine:
                 await asyncio.sleep(interval_s)
 
     async def _discovery_worker(self) -> None:
-        """Search engine discovery loop."""
+        """Search engine discovery loop with adaptive backoff."""
         if not bool(getattr(self.settings, "DISCOVERY_ENABLE_SEARCH", True)):
             return
         logger.info("🔍 Discovery worker started")
         await self._notify("🔍 Discovery worker dimulai — mencari URL via search engine...")
 
-        delay = self.settings.SEARCH_DELAY
+        base_delay = max(self.settings.SEARCH_DELAY, 3.0)  # minimum 3s between queries
         cycle = 0
+        consecutive_empty = 0  # track batches with 0 new URLs
 
         while not self.stop_event.is_set():
             cycle += 1
@@ -1795,11 +1796,16 @@ class CrawlEngine:
             if not batch:
                 logger.info("♻ Semua search queries sudah diproses, memulai cycle baru")
                 await self._notify(f"♻ Discovery cycle {cycle}: reset queries, mulai ulang")
+                # Long cooldown before restarting all queries (engines need rest)
+                cooldown = 120  # 2 minutes
+                logger.info("😴 Cooldown %ds before restarting query cycle...", cooldown)
+                await asyncio.sleep(cooldown)
                 batch = self.discovery.get_next_batch(batch_size=4)
                 if not batch:
                     await asyncio.sleep(10)
                     continue
 
+            batch_added = 0
             for search_url, engine in batch:
                 if self.stop_event.is_set():
                     break
@@ -1812,6 +1818,7 @@ class CrawlEngine:
                     if await self._try_enqueue(url, source=f"search:{engine}", parent_url=search_url):
                         added += 1
 
+                batch_added += added
                 if added > 0:
                     counts = await self.get_job_counts()
                     logger.info(
@@ -1822,8 +1829,37 @@ class CrawlEngine:
                         counts.get("total", 0),
                     )
 
-                # Rate limiting untuk search engine
-                await asyncio.sleep(delay)
+                # Per-query delay with jitter (3-8s) to look human
+                jitter = random.uniform(base_delay, base_delay + 5.0)
+                await asyncio.sleep(jitter)
+
+            # --- Adaptive backoff based on results ---
+            if batch_added == 0:
+                consecutive_empty += 1
+            else:
+                consecutive_empty = 0  # reset on success
+
+            if consecutive_empty >= 20:
+                # Severely blocked — sleep 10 minutes
+                logger.warning(
+                    "🚫 %d consecutive empty batches, sleeping 600s (10 min)...",
+                    consecutive_empty,
+                )
+                await asyncio.sleep(600)
+            elif consecutive_empty >= 10:
+                # Likely rate-limited — sleep 5 minutes
+                logger.warning(
+                    "⚠ %d consecutive empty batches, sleeping 300s (5 min)...",
+                    consecutive_empty,
+                )
+                await asyncio.sleep(300)
+            elif consecutive_empty >= 5:
+                # Starting to get blocked — sleep 2 minutes
+                logger.warning(
+                    "⏸ %d consecutive empty batches, sleeping 120s (2 min)...",
+                    consecutive_empty,
+                )
+                await asyncio.sleep(120)
 
             # Periodic status update
             if cycle % 5 == 0:
