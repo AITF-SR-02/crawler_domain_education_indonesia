@@ -212,7 +212,7 @@ TOPIK_AKADEMIK = [
     "pertambangan", "perminyakan", "pertanian", "peternakan", "perikanan", "kehutanan", 
     "kesehatan", "kedokteran", "keperawatan", "kebidanan", "farmasi", "gizi", 
     "lingkungan", "vokasi", "otomotif", "listrik", "bangunan", "rpl", "tkj", 
-    "multimedia", "akuntansi", "pemasaran", "perhotelan", "kuliner", "tata-boga"
+    "multimedia", "akuntansi", "pemasaran", "perhotelan", "kuliner", "tata-boga", "smk"
 ]
 
 TOPIK_KOMUNIKASI_KONSELING = [

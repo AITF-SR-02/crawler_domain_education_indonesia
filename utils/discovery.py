@@ -677,6 +677,13 @@ def build_bing_url(query: str, page: int = 0) -> str:
     return "https://www.bing.com/search?" + urlencode(params)
 
 
+def build_google_url(query: str, page: int = 0) -> str:
+    """Build Google search URL."""
+    params = {"q": query}
+    if page > 0:
+        params["start"] = str(page * 10)
+    return "https://www.google.com/search?" + urlencode(params)
+
 # ---------------------------------------------------------------------------
 # URL extractor from search results
 # ---------------------------------------------------------------------------
@@ -775,6 +782,27 @@ def extract_urls_from_bing(html: str) -> list[str]:
         if is_valid_crawl_url(real):
             urls.append(real)
 
+    return list(dict.fromkeys(urls))
+
+
+def extract_urls_from_google(html: str) -> list[str]:
+    """Extract result URLs from Google HTML response."""
+    urls: list[str] = []
+    href_pattern = re.compile(r'<a\s+[^>]*href="([^"]+)"', re.IGNORECASE)
+    
+    for match in href_pattern.finditer(html):
+        href = match.group(1)
+        if href.startswith("/url?q="):
+            try:
+                qs = parse_qs(urlparse("https://google.com" + href).query)
+                href = qs.get("q", [""])[0]
+            except Exception:
+                continue
+                
+        if href and href.startswith("http") and "google.com" not in href.lower():
+            if is_valid_crawl_url(href):
+                urls.append(href)
+                
     return list(dict.fromkeys(urls))
 
 
@@ -930,11 +958,13 @@ class DiscoveryEngine:
                 for page in range(self.max_pages_per_query):
                     search_urls.append((build_duckduckgo_url(query, page), "duckduckgo"))
                     search_urls.append((build_bing_url(query, page), "bing"))
+                    search_urls.append((build_google_url(query, page), "google"))
         else:
             for query in self._get_queries():
                 for page in range(self.max_pages_per_query):
                     search_urls.append((build_duckduckgo_url(query, page), "duckduckgo"))
                     search_urls.append((build_bing_url(query, page), "bing"))
+                    search_urls.append((build_google_url(query, page), "google"))
 
         if self.shard_count > 1:
             search_urls = [
@@ -980,6 +1010,10 @@ class DiscoveryEngine:
         # --- Bing: use Scrapling StealthyFetcher (primary) ---
         if engine == "bing":
             return await self._search_bing(search_url)
+            
+        # --- Google: use Scrapling StealthyFetcher (primary) ---
+        if engine == "google":
+            return await self._search_google(search_url)
 
         # --- Kompas tag pages: simple HTTP (no bot protection) ---
         if engine == "kompas_tag":
@@ -1077,6 +1111,38 @@ class DiscoveryEngine:
         # Fallback: plain HTTP (may get 0 results due to bot detection)
         return await self._fetch_and_parse_html(
             search_url, "bing", extract_urls_from_bing
+        )
+
+    async def _search_google(self, search_url: str) -> list[str]:
+        """Search via Scrapling StealthyFetcher for Google.
+        
+        Uses google_search=True mode in Scrapling.
+        """
+        try:
+            from scrapling.fetchers import StealthyFetcher
+            try:
+                page = await StealthyFetcher.async_fetch(
+                    search_url,
+                    headless=True,
+                    disable_resources=["image", "media", "font"],
+                    google_search=True,  # Scrapling specific bypass for Google
+                    network_idle=True,
+                    timeout=30000,
+                )
+                html = str(page.html_content) if hasattr(page, 'html_content') else str(page)
+                found = extract_urls_from_google(html)
+                logger.info(
+                    "Search [google-stealth] → %d URL ditemukan", len(found),
+                )
+                return found
+            except Exception as e:
+                logger.warning("Scrapling StealthyFetcher fetch error (Google): %s — falling back to HTTP", e)
+        except Exception as e:
+            logger.warning("Scrapling StealthyFetcher missing/import error: %s. Using HTTP fallback.", e)
+
+        # Fallback: plain HTTP
+        return await self._fetch_and_parse_html(
+            search_url, "google", extract_urls_from_google
         )
 
     async def _search_kompas_tag(self, search_url: str) -> list[str]:
