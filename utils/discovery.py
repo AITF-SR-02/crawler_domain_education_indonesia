@@ -961,62 +961,178 @@ class DiscoveryEngine:
         return batch
 
     async def search_one(self, search_url: str, engine: str) -> list[str]:
-        """Run one search query and return list of found URLs using HTTP fetch.
+        """Run one search query and return list of found URLs.
 
-        Previously this used Crawl4AI to fetch search result pages; now we use
-        a simple aiohttp GET and extract links from the HTML.
+        Strategy per engine:
+        - duckduckgo: use `duckduckgo-search` library (DDGS) which calls
+          DDG's internal API — completely immune to 403/bot blocks.
+        - bing: use Scrapling's `StealthyFetcher.async_fetch` which runs
+          a stealth headless browser — bypasses Bing's bot detection.
+        - kompas_tag: simple aiohttp GET (no bot protection on Kompas).
+
+        Falls back to plain aiohttp scraping if libraries are missing.
         """
+
+        # --- DuckDuckGo: use duckduckgo-search library (primary) ---
+        if engine == "duckduckgo":
+            return await self._search_duckduckgo(search_url)
+
+        # --- Bing: use Scrapling StealthyFetcher (primary) ---
+        if engine == "bing":
+            return await self._search_bing(search_url)
+
+        # --- Kompas tag pages: simple HTTP (no bot protection) ---
+        if engine == "kompas_tag":
+            return await self._search_kompas_tag(search_url)
+
+        logger.warning("Unknown search engine: %s", engine)
+        return []
+
+    # ------------------------------------------------------------------
+    # Engine-specific search methods
+    # ------------------------------------------------------------------
+
+    async def _search_duckduckgo(self, search_url: str) -> list[str]:
+        """Search via duckduckgo-search library (DDGS).
+
+        Uses DDG's internal VXL API — no HTML scraping, no 403 blocks.
+        Falls back to aiohttp HTML scraping if library not installed.
+        """
+        qs = parse_qs(urlparse(search_url).query)
+        query = qs.get("q", [""])[0]
+        if not query:
+            return []
+
+        # Try duckduckgo-search library first
+        try:
+            from duckduckgo_search import DDGS
+            try:
+                ddgs = DDGS(timeout=20)
+                results = ddgs.text(
+                    query,
+                    region="id-id",        # Indonesia region
+                    safesearch="off",
+                    max_results=30,
+                )
+                found = [
+                    r.get("href")
+                    for r in results
+                    if isinstance(r, dict) and r.get("href")
+                ]
+                found = [u for u in found if is_valid_crawl_url(u)]
+                logger.info(
+                    "Search [duckduckgo-api] → %d URL ditemukan (query: %.50s…)",
+                    len(found), query,
+                )
+                return found
+            except Exception as e:
+                logger.warning("DDGS library error: %s — falling back to HTTP", e)
+        except ImportError:
+            logger.debug("duckduckgo-search not installed, using HTTP fallback")
+
+        # Fallback: plain HTTP scraping (may get 403)
+        return await self._fetch_and_parse_html(
+            search_url, "duckduckgo", extract_urls_from_duckduckgo
+        )
+
+    async def _search_bing(self, search_url: str) -> list[str]:
+        """Search via Scrapling StealthyFetcher for Bing.
+
+        Uses a stealth headless browser to bypass Bing's bot detection.
+        Falls back to aiohttp HTML scraping if Scrapling not installed.
+        """
+        # Try Scrapling first
+        try:
+            from scrapling.fetchers import StealthyFetcher
+            try:
+                page = await StealthyFetcher.async_fetch(
+                    search_url,
+                    headless=True,
+                    disable_resources=["image", "media", "font"],
+                    google_search=False,
+                    network_idle=True,
+                    timeout=30000,
+                )
+                html = str(page.html_content) if hasattr(page, 'html_content') else str(page)
+                found = extract_urls_from_bing(html)
+                logger.info(
+                    "Search [bing-stealth] → %d URL ditemukan", len(found),
+                )
+                return found
+            except Exception as e:
+                logger.warning("Scrapling StealthyFetcher error: %s — falling back to HTTP", e)
+        except ImportError:
+            logger.debug("scrapling not installed, using HTTP fallback for Bing")
+
+        # Fallback: plain HTTP (may get 0 results due to bot detection)
+        return await self._fetch_and_parse_html(
+            search_url, "bing", extract_urls_from_bing
+        )
+
+    async def _search_kompas_tag(self, search_url: str) -> list[str]:
+        """Fetch Kompas tag page and extract article links."""
         try:
             timeout = ClientTimeout(total=30)
-            async with aiohttp.ClientSession(timeout=timeout, headers=_DEFAULT_SEARCH_HEADERS) as session:
+            async with aiohttp.ClientSession(
+                timeout=timeout, headers=_DEFAULT_SEARCH_HEADERS
+            ) as session:
                 async with session.get(search_url, ssl=False) as resp:
                     if resp.status >= 400:
-                        logger.warning("Search fetch failed (%s): HTTP %d", engine, resp.status)
+                        logger.warning(
+                            "Search fetch failed (kompas_tag): HTTP %d", resp.status
+                        )
                         return []
                     body = await resp.text(errors="ignore")
 
-            if engine == "kompas_tag":
-                # Extract only Kompas article links from tag pages
-                links = extract_links_from_page(body, search_url)
-                found = [u for u in links if is_kompas_article_url(u) and is_valid_crawl_url(u)]
-                # Prioritize EDU/Skola section URLs first
-                try:
-                    found.sort(
-                        key=lambda u: 0
-                        if (
-                            u.startswith("https://www.kompas.com/edu/")
-                            or u.startswith("https://www.kompas.com/skola/")
-                        )
-                        else 1
+            links = extract_links_from_page(body, search_url)
+            found = [
+                u for u in links
+                if is_kompas_article_url(u) and is_valid_crawl_url(u)
+            ]
+            # Prioritize EDU/Skola section URLs first
+            try:
+                found.sort(
+                    key=lambda u: 0
+                    if (
+                        u.startswith("https://www.kompas.com/edu/")
+                        or u.startswith("https://www.kompas.com/skola/")
                     )
-                except Exception:
-                    pass
-            elif engine == "duckduckgo":
-                # Coba gunakan library khusus jika terinstall untuk memotong proteksi Bot 403
-                try:
-                    from duckduckgo_search import AsyncDDGS
-                    qs = parse_qs(urlparse(search_url).query)
-                    query = qs.get("q", [""])[0]
-                    if query:
-                        try:
-                            async with AsyncDDGS() as ddgs:
-                                results = await ddgs.text(query, max_results=30)
-                                found = [r.get("href") for r in results if isinstance(r, dict) and r.get("href")]
-                                found = [u for u in found if is_valid_crawl_url(u)]
-                                logger.info("Search [duckduckgo (API)] → %d URL ditemukan", len(found))
-                                return found
-                        except Exception as e:
-                            logger.warning("DuckDuckGo API failed: %s", e)
-                except ImportError:
-                    pass  # Fallback ke scraping HTTP biasa (yang mungkin di-blokir 403)
-                
-                found = extract_urls_from_duckduckgo(body)
-            elif engine == "bing":
-                found = extract_urls_from_bing(body)
-            else:
-                found = []
+                    else 1
+                )
+            except Exception:
+                pass
 
-            logger.info("Search [%s] → %d URL ditemukan", engine, len(found))
+            logger.info("Search [kompas_tag] → %d URL ditemukan", len(found))
+            return found
+
+        except Exception as exc:
+            logger.error("Exception pada search (kompas_tag): %s", exc)
+            return []
+
+    async def _fetch_and_parse_html(
+        self,
+        search_url: str,
+        engine: str,
+        parser_func,
+    ) -> list[str]:
+        """Generic fallback: fetch HTML via aiohttp and parse with given function."""
+        try:
+            timeout = ClientTimeout(total=30)
+            async with aiohttp.ClientSession(
+                timeout=timeout, headers=_DEFAULT_SEARCH_HEADERS
+            ) as session:
+                async with session.get(search_url, ssl=False) as resp:
+                    if resp.status >= 400:
+                        logger.warning(
+                            "Search fetch failed (%s): HTTP %d", engine, resp.status
+                        )
+                        return []
+                    body = await resp.text(errors="ignore")
+
+            found = parser_func(body)
+            logger.info(
+                "Search [%s-http] → %d URL ditemukan", engine, len(found)
+            )
             return found
 
         except Exception as exc:

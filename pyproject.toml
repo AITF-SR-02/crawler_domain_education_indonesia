@@ -24,6 +24,10 @@ pdf = [
     "beautifulsoup4>=4.0.0",
     "lxml>=5.0.0",
 ]
+search = [
+    "duckduckgo-search>=8.0",
+    "scrapling>=0.3",
+]
 
 [dependency-groups]
 dev = []
