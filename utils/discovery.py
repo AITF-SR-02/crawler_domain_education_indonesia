@@ -189,7 +189,58 @@ _DEFAULT_SEARCH_HEADERS: dict[str, str] = {
 # Semua query sengaja dalam bahasa Indonesia agar hasil relevan
 # Menggunakan site: operator untuk diversifikasi sumber
 SEARCH_QUERIES: list[str] = [
-    # ===== SUMBER: PORTAL PEMERINTAH (.go.id) - UPDATED FOR NEW MINISTRIES =====
+    # ===== PRIORITAS 1: PLATFORM EDUKASI INDONESIA (zenius, ruangguru, quipper) =====
+    # Zenius - broad coverage
+    'site:zenius.net materi pelajaran',
+    'site:zenius.net soal pembahasan matematika fisika',
+    'site:zenius.net materi matematika SMA',
+    'site:zenius.net materi fisika SMA',
+    'site:zenius.net materi kimia SMA',
+    'site:zenius.net materi biologi SMA',
+    'site:zenius.net materi ekonomi SMA',
+    'site:zenius.net materi sejarah Indonesia',
+    'site:zenius.net materi bahasa Indonesia',
+    'site:zenius.net materi bahasa Inggris',
+    'site:zenius.net materi IPA SMP',
+    'site:zenius.net materi IPS SMP',
+    'site:zenius.net materi matematika SMP',
+    'site:zenius.net materi SD kelas 4 5 6',
+    'site:zenius.net soal latihan pembahasan',
+    'site:zenius.net UTBK SBMPTN pembahasan',
+    'site:zenius.net kurikulum merdeka',
+    'site:zenius.net blog pendidikan',
+    # Ruangguru - broad coverage
+    'site:ruangguru.com materi pelajaran kurikulum',
+    'site:ruangguru.com soal latihan pembahasan',
+    'site:ruangguru.com materi matematika SMA',
+    'site:ruangguru.com materi fisika SMA',
+    'site:ruangguru.com materi kimia SMA',
+    'site:ruangguru.com materi biologi SMA',
+    'site:ruangguru.com materi ekonomi SMA',
+    'site:ruangguru.com materi bahasa Indonesia',
+    'site:ruangguru.com materi bahasa Inggris',
+    'site:ruangguru.com materi IPA SMP',
+    'site:ruangguru.com materi IPS SMP',
+    'site:ruangguru.com materi matematika SMP',
+    'site:ruangguru.com materi SD kurikulum',
+    'site:ruangguru.com UTBK pembahasan soal',
+    'site:ruangguru.com kurikulum merdeka materi',
+    'site:ruangguru.com blog pendidikan tips belajar',
+    # Quipper - broad coverage
+    'site:quipper.com materi pelajaran Indonesia',
+    'site:quipper.com soal pembahasan matematika',
+    'site:quipper.com materi SMA kurikulum',
+    'site:quipper.com materi SMP kurikulum',
+    'site:quipper.com materi fisika kimia biologi',
+    'site:quipper.com blog pendidikan',
+    'site:quipper.com UTBK SBMPTN',
+    'site:quipper.com kurikulum merdeka',
+    # Other edu platforms
+    'site:kelaspintar.id materi kurikulum merdeka',
+    'site:utbk.id soal pembahasan',
+    'site:pahamify.com materi pelajaran',
+    
+    # ===== PRIORITAS 2: PORTAL PEMERINTAH (.go.id) =====
     'site:go.id kurikulum merdeka materi pelajaran',
     'site:go.id modul ajar SD SMP SMA',
     'site:go.id capaian pembelajaran kurikulum',
@@ -224,16 +275,7 @@ SEARCH_QUERIES: list[str] = [
     'site:sch.id modul ajar guru',
     'site:sch.id RPP silabus kurikulum',
     
-    # ===== SUMBER: PLATFORM EDUKASI INDONESIA =====
-    'site:zenius.net materi pelajaran',
-    'site:zenius.net soal pembahasan matematika fisika',
-    'site:ruangguru.com materi pelajaran kurikulum',
-    'site:ruangguru.com soal latihan pembahasan',
-    'site:quipper.com materi pelajaran Indonesia',
-    'site:kelaspintar.id materi kurikulum merdeka',
-    'site:utbk.id soal pembahasan',
-    
-    # ===== SUMBER: NEWS ONLINE - PENDIDIKAN =====
+    # ===== SUMBER: NEWS ONLINE - PENDIDIKAN (lower priority) =====
     'site:kompas.com pendidikan kurikulum merdeka sekolah',
     'site:kompas.id pendidikan kurikulum Indonesia',
     'site:detik.com pendidikan kurikulum merdeka sekolah',
@@ -1080,33 +1122,36 @@ class DiscoveryEngine:
         )
 
     async def _search_bing(self, search_url: str) -> list[str]:
-        """Search via Scrapling StealthyFetcher for Bing.
+        """Search Bing using Scrapling Fetcher (httpx + stealth headers).
 
-        Uses a stealth headless browser to bypass Bing's bot detection.
-        Falls back to aiohttp HTML scraping if Scrapling not installed.
+        Uses Fetcher (no browser needed) which is sufficient for Bing.
+        Falls back to aiohttp if Scrapling not installed.
         """
-        # Try Scrapling first
         try:
-            from scrapling.fetchers import StealthyFetcher
+            from scrapling.fetchers import Fetcher
             try:
-                page = await StealthyFetcher.async_fetch(
+                page = await Fetcher.async_fetch(
                     search_url,
-                    headless=True,
-                    disable_resources=["image", "media", "font"],
-                    google_search=False,
-                    network_idle=True,
-                    timeout=30000,
+                    stealthy_headers=True,
+                    follow_redirects=True,
+                    timeout=20,
                 )
+                status = getattr(page, 'status', 200)
+                if status and int(status) >= 400:
+                    logger.warning("Search [bing-fetcher] HTTP %d", status)
+                    return await self._fetch_and_parse_html(
+                        search_url, "bing", extract_urls_from_bing
+                    )
                 html = str(page.html_content) if hasattr(page, 'html_content') else str(page)
                 found = extract_urls_from_bing(html)
                 logger.info(
-                    "Search [bing-stealth] → %d URL ditemukan", len(found),
+                    "Search [bing-fetcher] → %d URL ditemukan", len(found),
                 )
                 return found
             except Exception as e:
-                logger.warning("Scrapling StealthyFetcher fetch error: %s — falling back to HTTP", e)
+                logger.warning("Scrapling Fetcher error (Bing): %s — falling back to HTTP", e)
         except Exception as e:
-            logger.warning("Scrapling StealthyFetcher missing/import error: %s. Using HTTP fallback.", e)
+            logger.warning("Scrapling Fetcher import error: %s. Using HTTP fallback.", e)
 
         # Fallback: plain HTTP (may get 0 results due to bot detection)
         return await self._fetch_and_parse_html(
@@ -1114,31 +1159,35 @@ class DiscoveryEngine:
         )
 
     async def _search_google(self, search_url: str) -> list[str]:
-        """Search via Scrapling StealthyFetcher for Google.
-        
-        Uses google_search=True mode in Scrapling.
+        """Search Google using Scrapling Fetcher (httpx + stealth headers).
+
+        Falls back to aiohttp if Scrapling not installed.
         """
         try:
-            from scrapling.fetchers import StealthyFetcher
+            from scrapling.fetchers import Fetcher
             try:
-                page = await StealthyFetcher.async_fetch(
+                page = await Fetcher.async_fetch(
                     search_url,
-                    headless=True,
-                    disable_resources=["image", "media", "font"],
-                    google_search=True,  # Scrapling specific bypass for Google
-                    network_idle=True,
-                    timeout=30000,
+                    stealthy_headers=True,
+                    follow_redirects=True,
+                    timeout=20,
                 )
+                status = getattr(page, 'status', 200)
+                if status and int(status) >= 400:
+                    logger.warning("Search [google-fetcher] HTTP %d", status)
+                    return await self._fetch_and_parse_html(
+                        search_url, "google", extract_urls_from_google
+                    )
                 html = str(page.html_content) if hasattr(page, 'html_content') else str(page)
                 found = extract_urls_from_google(html)
                 logger.info(
-                    "Search [google-stealth] → %d URL ditemukan", len(found),
+                    "Search [google-fetcher] → %d URL ditemukan", len(found),
                 )
                 return found
             except Exception as e:
-                logger.warning("Scrapling StealthyFetcher fetch error (Google): %s — falling back to HTTP", e)
+                logger.warning("Scrapling Fetcher error (Google): %s — falling back to HTTP", e)
         except Exception as e:
-            logger.warning("Scrapling StealthyFetcher missing/import error: %s. Using HTTP fallback.", e)
+            logger.warning("Scrapling Fetcher import error: %s. Using HTTP fallback.", e)
 
         # Fallback: plain HTTP
         return await self._fetch_and_parse_html(

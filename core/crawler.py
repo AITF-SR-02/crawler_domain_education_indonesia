@@ -179,6 +179,14 @@ class CrawlEngine:
         self.domain_counter: dict[str, int] = collections.defaultdict(int)
         self._domain_lock = asyncio.Lock()
         self.MAX_PER_DOMAIN = 50  # cap per domain (Wikipedia etc.)
+        # Edu platforms get a much higher cap
+        self.EDU_PRIORITY_DOMAINS = {
+            "zenius.net": 2000, "www.zenius.net": 2000,
+            "ruangguru.com": 2000, "www.ruangguru.com": 2000,
+            "quipper.com": 2000, "www.quipper.com": 2000,
+            "kelaspintar.id": 1000, "www.kelaspintar.id": 1000,
+            "pahamify.com": 1000, "www.pahamify.com": 1000,
+        }
         if getattr(settings, "DOMAIN_WHITELIST", None):
             # Focused crawl mode: allow many pages from the whitelisted domain(s)
             self.MAX_PER_DOMAIN = max(self.MAX_PER_DOMAIN, 5000)
@@ -1965,7 +1973,11 @@ class CrawlEngine:
 
                 # Per-domain cap BEFORE crawling — avoid wasting resources
                 async with self._domain_lock:
-                    if self.domain_counter[save_domain] >= self.MAX_PER_DOMAIN:
+                    # Edu platforms get higher cap
+                    domain_cap = self.EDU_PRIORITY_DOMAINS.get(
+                        save_domain, self.MAX_PER_DOMAIN
+                    )
+                    if self.domain_counter[save_domain] >= domain_cap:
                         await self.stats.incr("urls_skipped")
                         await self._mark_job_ignored(job_id, reason=f"domain_cap:{save_domain}")
                         continue
