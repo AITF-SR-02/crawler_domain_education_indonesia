@@ -175,6 +175,11 @@ async def main(args: argparse.Namespace) -> None:
         force=True,
     )
 
+    # Silence noisy HTTP libraries from Scrapling
+    logging.getLogger("primp").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
+
     stop_event = asyncio.Event()
 
     logger.info("=" * 60)
