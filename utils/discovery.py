@@ -967,7 +967,7 @@ class DiscoveryEngine:
         try:
             timeout = ClientTimeout(total=30)
             async with aiohttp.ClientSession(timeout=timeout, headers=_DEFAULT_SEARCH_HEADERS) as session:
-                async with session.get(search_url) as resp:
+                async with session.get(search_url, ssl=False) as resp:
                     if resp.status >= 400:
                         logger.warning("Search fetch failed (%s): HTTP %d", engine, resp.status)
                         return []
