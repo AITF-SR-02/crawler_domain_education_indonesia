@@ -173,10 +173,12 @@ _DEFAULT_SEARCH_HEADERS: dict[str, str] = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0 Safari/537.36"
+        "Chrome/124.0.0.0 Safari/537.36"
     ),
-    "Accept-Language": "id-ID,id;q=0.9,en;q=0.8",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Referer": "https://google.com/",
+    "Upgrade-Insecure-Requests": "1"
 }
 
 # ---------------------------------------------------------------------------
@@ -424,7 +426,7 @@ BLOCKED_DOMAINS: set[str] = {
     # Search engines
     "google.com", "google.co.id", "www.google.com", "www.google.co.id",
     "bing.com", "www.bing.com",
-    "duckduckgo.com", "html.duckduckgo.com",
+    "duckduckgo.com", "html.duckduckgo.com", "lite.duckduckgo.com",
     "yahoo.com", "search.yahoo.com",
     # Social media
     "youtube.com", "www.youtube.com", "m.youtube.com",
@@ -664,7 +666,7 @@ def build_duckduckgo_url(query: str, page: int = 0) -> str:
     if page > 0:
         params["s"] = str(page * 30)  # DDG pagination offset
         params["dc"] = str(page * 30 + 1)
-    return "https://html.duckduckgo.com/html/?" + urlencode(params)
+    return "https://lite.duckduckgo.com/lite/?" + urlencode(params)
 
 
 def build_bing_url(query: str, page: int = 0) -> str:
@@ -990,6 +992,24 @@ class DiscoveryEngine:
                 except Exception:
                     pass
             elif engine == "duckduckgo":
+                # Coba gunakan library khusus jika terinstall untuk memotong proteksi Bot 403
+                try:
+                    from duckduckgo_search import AsyncDDGS
+                    qs = parse_qs(urlparse(search_url).query)
+                    query = qs.get("q", [""])[0]
+                    if query:
+                        try:
+                            async with AsyncDDGS() as ddgs:
+                                results = await ddgs.text(query, max_results=30)
+                                found = [r.get("href") for r in results if isinstance(r, dict) and r.get("href")]
+                                found = [u for u in found if is_valid_crawl_url(u)]
+                                logger.info("Search [duckduckgo (API)] → %d URL ditemukan", len(found))
+                                return found
+                        except Exception as e:
+                            logger.warning("DuckDuckGo API failed: %s", e)
+                except ImportError:
+                    pass  # Fallback ke scraping HTTP biasa (yang mungkin di-blokir 403)
+                
                 found = extract_urls_from_duckduckgo(body)
             elif engine == "bing":
                 found = extract_urls_from_bing(body)
