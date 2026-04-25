@@ -8,8 +8,8 @@ from huggingface_hub import HfApi, create_repo
 # Ganti dengan nama repo tujuan lo (misal: "IlhamRafiqin/SekolahRakyat-Dataset")
 REPO_ID = "AITF-SR-02/sibi_extracted_md_siswa_only" 
 
-# Folder lokal yang mau di-push (isinya file .jsonl lo)
-LOCAL_FOLDER = r".C:\Local D\Galeri Belajar\Project\SR_02\aitf-sr-02-crawler\data\raw\dataset_raw.jsonl"
+# Folder atau file lokal yang mau di-push
+LOCAL_PATH = r"data/raw/dataset_raw.jsonl"
 
 # ─────────────────────────────────────────────────────────────────
 # 2. UTILS (Adopsi dari kode lo)
@@ -37,21 +37,25 @@ def resolve_hf_token() -> str | None:
 
 import json
 
-def deduplicate_dataset(local_dir: str) -> str:
+def deduplicate_dataset(local_path: str) -> str:
     print("🧹 Memulai deduplikasi berdasarkan URL...")
     seen_urls = set()
     total_records = 0
     unique_records = 0
     
-    # Buat folder khusus untuk file yang sudah dideduplikasi
-    dedup_dir = os.path.join(local_dir, "_deduplicated")
+    # Tentukan output folder berdasarkan apakah input berupa file atau folder
+    if os.path.isfile(local_path):
+        base_dir = os.path.dirname(local_path)
+        files_to_process = [os.path.basename(local_path)]
+    else:
+        base_dir = local_path
+        files_to_process = [f for f in os.listdir(local_path) if f.endswith(".json") or f.endswith(".jsonl")]
+        
+    dedup_dir = os.path.join(base_dir, "_deduplicated")
     os.makedirs(dedup_dir, exist_ok=True)
     
-    for filename in os.listdir(local_dir):
-        if not (filename.endswith(".json") or filename.endswith(".jsonl")):
-            continue
-            
-        file_path = os.path.join(local_dir, filename)
+    for filename in files_to_process:
+        file_path = os.path.join(base_dir, filename)
         out_path = os.path.join(dedup_dir, filename)
         
         try:
@@ -156,4 +160,4 @@ if __name__ == "__main__":
     load_dotenv_if_present(".env")
     
     # Eksekusi
-    push_data_to_hf(REPO_ID, LOCAL_FOLDER, token=resolve_hf_token())
+    push_data_to_hf(REPO_ID, LOCAL_PATH, token=resolve_hf_token())
