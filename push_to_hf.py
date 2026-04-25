@@ -1,12 +1,13 @@
 import os
 from pathlib import Path
-from huggingface_hub import HfApi, create_repo
+from huggingface_hub import HfApi, create_repo, hf_hub_download
+from huggingface_hub.utils import EntryNotFoundError
 
 # ─────────────────────────────────────────────────────────────────
 # 1. KONFIGURASI REPO
 # ─────────────────────────────────────────────────────────────────
 # Ganti dengan nama repo tujuan lo (misal: "IlhamRafiqin/SekolahRakyat-Dataset")
-REPO_ID = "AITF-SR-02/sibi_extracted_md_siswa_only" 
+REPO_ID = "AITF-SR-02/domain_pendidikan_pedagogi_news_artikel_online" 
 
 # Folder atau file lokal yang mau di-push
 LOCAL_PATH = r"data/raw/dataset_raw.jsonl"
@@ -37,8 +38,8 @@ def resolve_hf_token() -> str | None:
 
 import json
 
-def deduplicate_dataset(local_path: str) -> str:
-    print("🧹 Memulai deduplikasi berdasarkan URL...")
+def deduplicate_dataset(local_path: str, repo_id: str, token: str) -> str:
+    print("🧹 Memulai deduplikasi dan penggabungan dengan data di HF...")
     seen_urls = set()
     total_records = 0
     unique_records = 0
@@ -55,6 +56,28 @@ def deduplicate_dataset(local_path: str) -> str:
     os.makedirs(dedup_dir, exist_ok=True)
     
     for filename in files_to_process:
+        hf_records = []
+        try:
+            print(f"⬇️ Mencoba mendownload {filename} dari HF untuk digabung...")
+            hf_file_path = hf_hub_download(repo_id=repo_id, filename=filename, repo_type="dataset", token=token)
+            with open(hf_file_path, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                if filename.endswith(".jsonl") or ('\n' in content and not content.startswith('[')):
+                    for line in content.splitlines():
+                        if line.strip():
+                            try: hf_records.append(json.loads(line))
+                            except: pass
+                else:
+                    try:
+                        hf_records = json.loads(content)
+                        if not isinstance(hf_records, list): hf_records = [hf_records]
+                    except: pass
+            print(f"✅ Berhasil mendownload {len(hf_records)} data dari HF.")
+        except EntryNotFoundError:
+            print(f"ℹ️ File {filename} belum ada di HF. Akan dibuat baru.")
+        except Exception as e:
+            print(f"⚠️ Gagal mendownload dari HF: {e}. Lanjut dengan data lokal saja.")
+            
         file_path = os.path.join(base_dir, filename)
         out_path = os.path.join(dedup_dir, filename)
         
@@ -62,30 +85,25 @@ def deduplicate_dataset(local_path: str) -> str:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read().strip()
                 
-            if not content:
-                continue
-                
-            records = []
-            if filename.endswith(".jsonl") or ('\n' in content and not content.startswith('[')):
-                # Parse sebagai JSONL
-                for line in content.splitlines():
-                    if not line.strip(): continue
+            local_records = []
+            if content:
+                if filename.endswith(".jsonl") or ('\n' in content and not content.startswith('[')):
+                    for line in content.splitlines():
+                        if line.strip():
+                            try: local_records.append(json.loads(line))
+                            except: pass
+                else:
                     try:
-                        records.append(json.loads(line))
-                    except:
-                        pass
-            else:
-                # Parse sebagai JSON array
-                try:
-                    records = json.loads(content)
-                    if not isinstance(records, list):
-                        records = [records]
-                except:
-                    pass
+                        local_records = json.loads(content)
+                        if not isinstance(local_records, list): local_records = [local_records]
+                    except: pass
+            
+            # Gabungkan data HF dengan data Lokal
+            all_records = hf_records + local_records
             
             # Proses deduplikasi
             unique_data = []
-            for rec in records:
+            for rec in all_records:
                 total_records += 1
                 url = rec.get("url")
                 
@@ -107,12 +125,12 @@ def deduplicate_dataset(local_path: str) -> str:
                 else:
                     json.dump(unique_data, f, ensure_ascii=False, indent=2)
                     
-            print(f"  - {filename}: {len(unique_data)} unik dari {len(records)} total data")
+            print(f"  - {filename}: {len(unique_data)} unik dari {len(all_records)} total data gabungan (HF: {len(hf_records)}, Lokal: {len(local_records)})")
             
         except Exception as e:
             print(f"❌ Gagal memproses {filename}: {e}")
             
-    print(f"✨ Selesai! Total data: {total_records} | Unik: {unique_records} | Duplikat dihapus: {total_records - unique_records}")
+    print(f"✨ Selesai! Total gabungan: {total_records} | Unik: {unique_records} | Duplikat dihapus: {total_records - unique_records}")
     return dedup_dir
 
 
@@ -131,12 +149,12 @@ def push_data_to_hf(repo_id: str, local_dir: str, token: str | None):
         return
 
     try:
-        # 1. Jalankan proses deduplikasi dulu
-        dedup_dir = deduplicate_dataset(local_dir)
-
-        # 2. Cek/Buat Repo kalau belum ada
+        # 1. Cek/Buat Repo kalau belum ada (buat dulu agar download bisa jalan jika repo sdh ada)
         print(f"\n🔍 Mengecek repository {repo_id}...")
         create_repo(repo_id=repo_id, token=token, repo_type="dataset", exist_ok=True)
+
+        # 2. Jalankan proses deduplikasi dan penggabungan dengan HF
+        dedup_dir = deduplicate_dataset(local_dir, repo_id, token)
         
         # 3. Upload Folder hasil deduplikasi
         print(f"📤 Mengunggah file ke Hugging Face Hub... (Mohon tunggu)")
