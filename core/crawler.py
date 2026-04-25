@@ -43,12 +43,16 @@ except Exception:  # pragma: no cover
 # Fetcher = fast httpx + stealth headers; StealthyFetcher = headless browser bypass
 try:
     from scrapling.fetchers import Fetcher as ScraplingFetcher
-except Exception:  # pragma: no cover
+except Exception as e:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).warning("Failed to import ScraplingFetcher: %s", e)
     ScraplingFetcher = None
 
 try:
     from scrapling.fetchers import StealthyFetcher as ScraplingStealthyFetcher
-except Exception:  # pragma: no cover
+except Exception as e:  # pragma: no cover
+    import logging
+    logging.getLogger(__name__).warning("Failed to import ScraplingStealthyFetcher: %s", e)
     ScraplingStealthyFetcher = None
 
 _SCRAPLING_AVAILABLE = ScraplingFetcher is not None
