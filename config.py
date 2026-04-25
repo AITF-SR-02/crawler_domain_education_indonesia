@@ -54,7 +54,7 @@ class Settings(BaseSettings):
 
     # Search engine discovery
     SEARCH_DELAY: float = 3.0  # detik antar search query (rate limiting)
-    MIN_RELEVANCE_SCORE: int = 1  # minimal keyword match untuk simpan konten
+    MIN_RELEVANCE_SCORE: int = 2  # minimal keyword match untuk simpan konten
 
     # Discovery sources (PRD v2.0)
     DISCOVERY_ENABLE_SITEMAP: bool = True
