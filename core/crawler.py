@@ -289,11 +289,11 @@ class CrawlEngine:
                 return
 
             self._dedupe_db_path.parent.mkdir(parents=True, exist_ok=True)
-            self._db = await aiosqlite.connect(self._dedupe_db_path, timeout=30)
+            self._db = await aiosqlite.connect(self._dedupe_db_path, timeout=60.0)
             self._db.row_factory = aiosqlite.Row
             await self._db.execute("PRAGMA journal_mode=WAL;")
             await self._db.execute("PRAGMA synchronous=NORMAL;")
-            await self._db.execute("PRAGMA busy_timeout=5000;")
+            await self._db.execute("PRAGMA busy_timeout=60000;")
 
         # State machine table (PRD v2.0): pending/processing/completed/failed/ignored
         await self._db.execute(
@@ -335,12 +335,11 @@ class CrawlEngine:
                 "CREATE INDEX IF NOT EXISTS idx_url_jobs_priority ON url_jobs(priority)"
             )
 
-            # Best-effort backfill: prioritize non-Kompas domains to overcome the 190k Kompas backlog
+            # Best-effort backfill: prioritize non-Kompas domains to overcome the backlog
             await self._db.execute(
                 """
                 UPDATE url_jobs
                 SET priority = CASE
-                    WHEN url LIKE '%ruangguru.com/blog/%' THEN 0
                     WHEN url LIKE '%ruangguru.com/blog/%' THEN 0
                     WHEN url LIKE '%quipper.com/id/blog/%' THEN 0
                     WHEN url LIKE '%zenius.net/blog/%' THEN 0
@@ -368,8 +367,8 @@ class CrawlEngine:
                 END
                 """
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Priority schema update slow/failed: %s", e)
 
         await self._db.execute(
             "CREATE TABLE IF NOT EXISTS visited_urls (url TEXT PRIMARY KEY)"
@@ -382,10 +381,13 @@ class CrawlEngine:
         )
 
         # Resume safety: return stuck processing jobs back to pending after a crash.
-        # (Best-effort; avoids permanently stuck rows.)
-        await self._db.execute(
-            "UPDATE url_jobs SET status='pending' WHERE status='processing'"
-        )
+        try:
+            await self._db.execute(
+                "UPDATE url_jobs SET status='pending' WHERE status='processing'"
+            )
+        except Exception as e:
+            logger.warning("Failed to reset stuck jobs (DB locked?): %s", e)
+            
         await self._db.commit()
 
     def _url_priority(self, url: str) -> int:
