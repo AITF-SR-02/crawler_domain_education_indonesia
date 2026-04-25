@@ -9,7 +9,7 @@ from huggingface_hub import HfApi, create_repo
 REPO_ID = "AITF-SR-02/sibi_extracted_md_siswa_only" 
 
 # Folder lokal yang mau di-push (isinya file .jsonl lo)
-LOCAL_FOLDER = r".\data\silver_cleaned_1\siswa_only"
+LOCAL_FOLDER = r".C:\Local D\Galeri Belajar\Project\SR_02\aitf-sr-02-crawler\data\raw\dataset_raw.jsonl"
 
 # ─────────────────────────────────────────────────────────────────
 # 2. UTILS (Adopsi dari kode lo)
@@ -35,6 +35,83 @@ def load_dotenv_if_present(dotenv_path: str | os.PathLike = ".env") -> None:
 def resolve_hf_token() -> str | None:
     return os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_HUB_TOKEN")
 
+import json
+
+def deduplicate_dataset(local_dir: str) -> str:
+    print("🧹 Memulai deduplikasi berdasarkan URL...")
+    seen_urls = set()
+    total_records = 0
+    unique_records = 0
+    
+    # Buat folder khusus untuk file yang sudah dideduplikasi
+    dedup_dir = os.path.join(local_dir, "_deduplicated")
+    os.makedirs(dedup_dir, exist_ok=True)
+    
+    for filename in os.listdir(local_dir):
+        if not (filename.endswith(".json") or filename.endswith(".jsonl")):
+            continue
+            
+        file_path = os.path.join(local_dir, filename)
+        out_path = os.path.join(dedup_dir, filename)
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                
+            if not content:
+                continue
+                
+            records = []
+            if filename.endswith(".jsonl") or ('\n' in content and not content.startswith('[')):
+                # Parse sebagai JSONL
+                for line in content.splitlines():
+                    if not line.strip(): continue
+                    try:
+                        records.append(json.loads(line))
+                    except:
+                        pass
+            else:
+                # Parse sebagai JSON array
+                try:
+                    records = json.loads(content)
+                    if not isinstance(records, list):
+                        records = [records]
+                except:
+                    pass
+            
+            # Proses deduplikasi
+            unique_data = []
+            for rec in records:
+                total_records += 1
+                url = rec.get("url")
+                
+                # Jika tidak ada URL, tetap kita simpan
+                if not url:
+                    unique_data.append(rec)
+                    unique_records += 1
+                # Jika URL belum pernah dilihat, simpan dan catat
+                elif url not in seen_urls:
+                    seen_urls.add(url)
+                    unique_data.append(rec)
+                    unique_records += 1
+                    
+            # Tulis ke folder deduplikasi
+            with open(out_path, 'w', encoding='utf-8') as f:
+                if filename.endswith(".jsonl") or ('\n' in content and not content.startswith('[')):
+                    for rec in unique_data:
+                        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                else:
+                    json.dump(unique_data, f, ensure_ascii=False, indent=2)
+                    
+            print(f"  - {filename}: {len(unique_data)} unik dari {len(records)} total data")
+            
+        except Exception as e:
+            print(f"❌ Gagal memproses {filename}: {e}")
+            
+    print(f"✨ Selesai! Total data: {total_records} | Unik: {unique_records} | Duplikat dihapus: {total_records - unique_records}")
+    return dedup_dir
+
+
 # ─────────────────────────────────────────────────────────────────
 # 3. PUSH ENGINE
 # ─────────────────────────────────────────────────────────────────
@@ -43,28 +120,29 @@ def push_data_to_hf(repo_id: str, local_dir: str, token: str | None):
     api = HfApi(token=token)
     
     print(f"🚀 Memulai proses push ke: {repo_id}")
-    print(f"📁 Local folder: {os.path.abspath(local_dir)}")
+    print(f"📁 Local folder awal: {os.path.abspath(local_dir)}")
     
     if not token:
         print("❌ Error: Token HF tidak ditemukan! Isi .env dulu atau set environment variable.")
         return
 
     try:
-        # 1. Cek/Buat Repo kalau belum ada
-        print(f"🔍 Mengecek repository...")
+        # 1. Jalankan proses deduplikasi dulu
+        dedup_dir = deduplicate_dataset(local_dir)
+
+        # 2. Cek/Buat Repo kalau belum ada
+        print(f"\n🔍 Mengecek repository {repo_id}...")
         create_repo(repo_id=repo_id, token=token, repo_type="dataset", exist_ok=True)
         
-        # 2. Upload Folder
-        # path_in_repo="." berarti semua isi folder lokal bakal masuk ke root repo HF
-        print(f"📤 Menunggah file ke Hugging Face Hub... (Mohon tunggu)")
+        # 3. Upload Folder hasil deduplikasi
+        print(f"📤 Mengunggah file ke Hugging Face Hub... (Mohon tunggu)")
         
         api.upload_folder(
-            folder_path=local_dir,
+            folder_path=dedup_dir,
             repo_id=repo_id,
             repo_type="dataset",
-            # Opsional: kalau mau dimasukin ke subfolder tertentu di HF
-            # path_in_repo="final_data", 
-            commit_message="Add Gold and Silver School Dataset v14 (Smart-Cut)",
+            # commit message
+            commit_message="Add Deduplicated Dataset v1 (Unique URLs)",
             token=token
         )
         
