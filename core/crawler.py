@@ -55,7 +55,10 @@ except Exception as e:  # pragma: no cover
     logging.getLogger(__name__).warning("Failed to import ScraplingStealthyFetcher: %s", e)
     ScraplingStealthyFetcher = None
 
-_SCRAPLING_AVAILABLE = ScraplingFetcher is not None
+# FORCE DISABLE SCRAPLING TO FIX ASYNC_FETCH ERROR
+ScraplingFetcher = None
+ScraplingStealthyFetcher = None
+_SCRAPLING_AVAILABLE = False
 
 from config import Settings, TARGET_KEYWORDS, SCIENCE_VOCAB_ID
 from utils.processor import (

@@ -1122,74 +1122,15 @@ class DiscoveryEngine:
         )
 
     async def _search_bing(self, search_url: str) -> list[str]:
-        """Search Bing using Scrapling Fetcher (httpx + stealth headers).
-
-        Uses Fetcher (no browser needed) which is sufficient for Bing.
-        Falls back to aiohttp if Scrapling not installed.
-        """
-        try:
-            from scrapling.fetchers import Fetcher
-            try:
-                page = await Fetcher.async_fetch(
-                    search_url,
-                    stealthy_headers=True,
-                    follow_redirects=True,
-                    timeout=20,
-                )
-                status = getattr(page, 'status', 200)
-                if status and int(status) >= 400:
-                    logger.warning("Search [bing-fetcher] HTTP %d", status)
-                    return await self._fetch_and_parse_html(
-                        search_url, "bing", extract_urls_from_bing
-                    )
-                html = str(page.html_content) if hasattr(page, 'html_content') else str(page)
-                found = extract_urls_from_bing(html)
-                logger.info(
-                    "Search [bing-fetcher] → %d URL ditemukan", len(found),
-                )
-                return found
-            except Exception as e:
-                logger.warning("Scrapling Fetcher error (Bing): %s — falling back to HTTP", e)
-        except Exception as e:
-            logger.warning("Scrapling Fetcher import error: %s. Using HTTP fallback.", e)
-
-        # Fallback: plain HTTP (may get 0 results due to bot detection)
+        """Search Bing using direct HTTP fallback to bypass Scrapling errors."""
+        # Bypassing broken Scrapling Fetcher -> Straight to HTTP
         return await self._fetch_and_parse_html(
             search_url, "bing", extract_urls_from_bing
         )
 
     async def _search_google(self, search_url: str) -> list[str]:
-        """Search Google using Scrapling Fetcher (httpx + stealth headers).
-
-        Falls back to aiohttp if Scrapling not installed.
-        """
-        try:
-            from scrapling.fetchers import Fetcher
-            try:
-                page = await Fetcher.async_fetch(
-                    search_url,
-                    stealthy_headers=True,
-                    follow_redirects=True,
-                    timeout=20,
-                )
-                status = getattr(page, 'status', 200)
-                if status and int(status) >= 400:
-                    logger.warning("Search [google-fetcher] HTTP %d", status)
-                    return await self._fetch_and_parse_html(
-                        search_url, "google", extract_urls_from_google
-                    )
-                html = str(page.html_content) if hasattr(page, 'html_content') else str(page)
-                found = extract_urls_from_google(html)
-                logger.info(
-                    "Search [google-fetcher] → %d URL ditemukan", len(found),
-                )
-                return found
-            except Exception as e:
-                logger.warning("Scrapling Fetcher error (Google): %s — falling back to HTTP", e)
-        except Exception as e:
-            logger.warning("Scrapling Fetcher import error: %s. Using HTTP fallback.", e)
-
-        # Fallback: plain HTTP
+        """Search Google using direct HTTP fallback to bypass Scrapling errors."""
+        # Bypassing broken Scrapling Fetcher -> Straight to HTTP
         return await self._fetch_and_parse_html(
             search_url, "google", extract_urls_from_google
         )
